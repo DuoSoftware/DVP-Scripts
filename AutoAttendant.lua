@@ -127,6 +127,7 @@ elseif issuccess == "timeout" then
 			session:streamFile(rowy.Data)
 			
 			elseif rowy.Action == "end" then
+				session:hangup("USER_BUSY");
 			
 			elseif rowy.Action == "transfer" then
 			
@@ -143,6 +144,39 @@ elseif issuccess == "timeout" then
 
 
 else 
+
+	actionQuery = string.format("SELECT * FROM \"CSDB_Actions\" WHERE (\"CSDBAutoAttendantId\" = %s AND \"OnEvent\" = 'default') LIMIT 1", row.id, destnum);
+		freeswitch.consoleLog("notice",actionQuery);
+		
+
+		dbh:query(actionQuery, function(rowy)
+		
+		freeswitch.consoleLog("notice", string.format("--------------------------------------------------------------->%s", rowy.Action));
+			
+			if rowy.Action == "route" then
+			
+				new_sessionx = freeswitch.Session(string.format("user/%s",rowy.Data), session);
+				freeswitch.bridge(session, new_sessionx);
+			
+			elseif rowy.Action == "play" then
+			
+			session:streamFile(rowy.Data)
+			
+			elseif rowy.Action == "end" then
+				session:hangup("USER_BUSY");
+			
+			elseif rowy.Action == "transfer" then
+			
+			session:transfer(rowy.Data, "XML", contextTo);
+			
+			else
+			
+			session:hangup("USER_BUSY");
+			
+			end
+		
+		
+		end)
 
 end
 
