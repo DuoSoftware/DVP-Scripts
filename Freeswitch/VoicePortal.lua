@@ -1,16 +1,21 @@
-local dbh = freeswitch.Dbh("odbc://PostgreSQL30:duo:DuoS123")
 
-pin = argv[1];
-userid = argv[2];
-templateid = argv[3];
-status = argv[4];
-action = argv[5];
-voicemail = argv[6];
-onbusy = argv[7];
-onanswer = argv[8];
+
+local dbh = freeswitch.Dbh("odbc://PostgreSQL30:duo:DuoS123")
+company = argv[1];
+tenant = argv[2];
+pin = argv[3];
+userid = argv[4];
+templateid = argv[5];
+status = argv[6];
+action = argv[7];
+voicemail = argv[8];
+onbusy = argv[9];
+onanswer = argv[10];
 
 
 --DND, CALL_DIVERT, AVAILABLE
+
+session:answer();
 
 session:set_tts_params("flite", "kal");
 session:speak("Welcome to the voice portal, Please enter your pin number");
@@ -41,7 +46,7 @@ end
 if digits == pin then
 
 	session:flushDigits();
-	satatusString = string.format("You are successfully loged in to the syatem, your current state is %s, if you want to change status please press 1 or press 2 for status based actions",statusx);
+	satatusString = string.format("You are successfully loged in to the systam, your current state is %s, if you want to change status please press 1 or press 2 for status based actions",statusx);
 	session:speak(satatusString);
 	digits = session:getDigits(1, "#", 5000);
 	
@@ -206,9 +211,23 @@ if digits == pin then
 				
 				if digits == "1" then
 				
-					satatusUpdateQuery = string.format("UPDATE \"CSDB_Forwardings\" SET \"DestinationNumber\" = '%s' WHERE \"id\" = %s",numdata, onbusy);
-					freeswitch.consoleLog("notice", satatusUpdateQuery);
-					dbh:query(satatusUpdateQuery);
+					if onbusy == "none" then
+					
+					
+					
+					
+						satatusUpdateQuery = string.format("INSERT INTO \"CSDB_Forwardings\"(\"DestinationNumber\", \"RingTimeout\", \"CompanyId\", \"TenantId\", \"ObjClass\", \"ObjType\", \"ObjCategory\", \"DisconnectReason\", \"IsActive\", \"createdAt\", \"updatedAt\", \"PBXUserUuid\") VALUES ('%s', 60, %s, %s, 'DVP', 'PBX', 'FWD', 'BUSY', true, '1999-09-09 00:00:00+06','1999-09-09 00:00:00+06', %s)",numdata,company, tenant, userid);
+						freeswitch.consoleLog("notice", satatusUpdateQuery);
+						dbh:query(satatusUpdateQuery);
+					
+					
+					
+					else
+				
+						satatusUpdateQuery = string.format("UPDATE \"CSDB_Forwardings\" SET \"DestinationNumber\" = '%s' WHERE \"id\" = %s",numdata, onbusy);
+						freeswitch.consoleLog("notice", satatusUpdateQuery);
+						dbh:query(satatusUpdateQuery);
+					end
 				
 				
 					session:speak("Your onbusy forwarding number set successfuly");
@@ -236,9 +255,19 @@ if digits == pin then
 				
 				if digits == "1" then
 				
-					satatusUpdateQuery = string.format("UPDATE \"CSDB_Forwardings\" SET \"DestinationNumber\" = '%s' WHERE \"id\" = %s",numdata, onanswer);
-					freeswitch.consoleLog("notice", satatusUpdateQuery);
-					dbh:query(satatusUpdateQuery);
+					if onanswer == "none" then
+					
+						satatusUpdateQuery = string.format("INSERT INTO \"CSDB_Forwardings\"(\"DestinationNumber\", \"RingTimeout\", \"CompanyId\", \"TenantId\", \"ObjClass\", \"ObjType\", \"ObjCategory\", \"DisconnectReason\", \"IsActive\", \"createdAt\", \"updatedAt\", \"PBXUserUuid\") VALUES ('%s', 60, %s, %s, 'DVP', 'PBX', 'FWD', 'NO_ANSWER', true, '1999-09-09 00:00:00+06','1999-09-09 00:00:00+06', %s)",numdata,company, tenant, userid);
+						freeswitch.consoleLog("notice", satatusUpdateQuery);
+						dbh:query(satatusUpdateQuery);
+					
+					
+					else
+				
+						satatusUpdateQuery = string.format("UPDATE \"CSDB_Forwardings\" SET \"DestinationNumber\" = '%s' WHERE \"id\" = %s",numdata, onanswer);
+						freeswitch.consoleLog("notice", satatusUpdateQuery);
+						dbh:query(satatusUpdateQuery);
+					end
 				
 					session:speak("Your noanswer forwarding number set successfuly");
 				
