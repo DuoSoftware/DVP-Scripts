@@ -40,7 +40,7 @@ if curl_response_code_agent == "200" then
 	status =curl_response_agent_status;
 
 
-	satatusString = string.format("You are successfully loged in to the systam, your current state is %s, if you want to toggle state please press 1 ",status);
+	satatusString = string.format("You are successfully loged in to the systam, your current state is %s, if you want to toggle state please press 1 press 2 to logoff",status);
 	session:speak(satatusString);
 	option = session:getDigits(1, "#", 5000);
 	session:flushDigits()
@@ -69,19 +69,27 @@ if curl_response_code_agent == "200" then
 
 		session:speak("Now Your are in %s state", statusx);
 		session:hangup();
+
+	elseif option == "2" then
+
+		agentlogoff = string.format("http://192.168.0.15:2225/DVP/API/1.0.0.0/ARDS/%s/%s/resource/%s delete",company,tenant,curl_response_agent);
+		session:execute("curl", agentlogoff);
+		curl_response_code_logoff = session:getVariable("curl_response_code");
+
+		session:speak("Lou are logged off successfully");
+		session:hangup();
 				
 
 	else
 
-	session:speak("Your are still in %s state", statusx);
-	session:hangup();
+		session:speak("Your are still in %s state", statusx);
+		session:hangup();
 
 	end	
 
-else
+elseif curl_response_code_agent == "403" then
 
 	session:speak("UserID or Password wrong, please try again");
 	session:hangup();
-
 
 end
