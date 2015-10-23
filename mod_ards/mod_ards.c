@@ -1080,7 +1080,7 @@ SWITCH_STANDARD_API(ards_route_function)
 	//const char *type = NULL;
 	//const char *category = NULL;
 
-	//int argc;
+	int argc;
 	cJSON *cj, *cjp, *cjr;
 	
 	switch_thread_t *thread;
