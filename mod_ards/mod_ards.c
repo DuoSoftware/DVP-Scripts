@@ -80,7 +80,9 @@ struct call_helper {
 	const char *class;
 	const char *type;
 	const char *category;
-
+	const char *originate_type;
+	const char *originate_domain;
+	const char *originate_user;
 
 
 	switch_memory_pool_t *pool;
@@ -226,6 +228,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	long httpRes = 0;
 
 	char tmpurl[1000];
+	char *ctx = switch_mprintf("authorization: %d#%d", tenant, company);
 
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
@@ -266,7 +269,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	}
 
 
-	char *ctx = switch_mprintf("authorization: %d#%d", tenant, company);
+	
 	headers = switch_curl_slist_append(headers, ctx);
 	switch_safe_free(ctx);
 
@@ -321,6 +324,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	//switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 	cJSON *jdata;
+	cJSON *a;
 
 	//char tmpurl[1000];
 	char msg[1000];
@@ -366,7 +370,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	
 
 
-	cJSON *a = cJSON_CreateStringArray(strings, 1);
+	a = cJSON_CreateStringArray(strings, 1);
 	//cJSON_AddItemToArray(a, skill);
 	cJSON_AddItemToObject(jdata, "Attributes", a);
 	
@@ -595,6 +599,12 @@ static void register_ards(int company, int tenant){
 SWITCH_STANDARD_APP(queue_music_function)
 {
 	switch_channel_t *channel = switch_core_session_get_channel(session);
+	//const char *url = globals.qurl;
+	switch_memory_pool_t *pool = NULL;
+	switch_CURL *curl_handle = NULL;
+	http_data_t *http_data = NULL;
+	//switch_curl_slist_t *headers = NULL;
+	long httpRes = 0;
 	//char *uuid = switch_core_session_get_uuid(session);
 
 	const char *profile = switch_channel_get_variable(channel, "ards_profile");
@@ -604,12 +614,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 
 		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", globals.qurl,profile);
 
-		//const char *url = globals.qurl;
-		switch_memory_pool_t *pool = NULL;
-		switch_CURL *curl_handle = NULL;
-		http_data_t *http_data = NULL;
-		//switch_curl_slist_t *headers = NULL;
-		long httpRes = 0;
+		
 
 
 
@@ -698,9 +703,6 @@ SWITCH_STANDARD_APP(ards_function)
 {
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", url, uuid);
 
-
-	
-
 	char dbuf[10];
 	switch_input_args_t args = { 0 };
 	switch_channel_t *channel = switch_core_session_get_channel(session);
@@ -711,25 +713,28 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *firstannouncement = switch_channel_get_variable(channel, "ards_first_announcement");
 	const char *announcement = switch_channel_get_variable(channel, "ards_announcement");
 	const char *announcement_time = switch_channel_get_variable(channel, "ards_announcement_time");
+
+
+
 	ards_moh_step moh_step = ARDS_PRE_MOH;
-
-	switch_channel_set_variable(channel, "dvp_call_type", "ards");
-	switch_channel_answer(channel);
-	
-	
-	//const char *record_template = switch_channel_get_variable(channel, "ards_record_template");
-
 	int time_a = atoi(announcement_time);
-
+	switch_status_t pstatus;
 
 
 	const char *skill = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
+
+	
+
 	//const char *priority = NULL;
 	skill = switch_channel_get_variable(channel, "ards_skill");
 	company = switch_channel_get_variable(channel, "companyid");
 	tenant = switch_channel_get_variable(channel, "tenantid");
+
+
+	switch_channel_set_variable(channel, "dvp_call_type", "ards");
+	switch_channel_answer(channel);
 
 	if (!skill){
 		skill = "111111"; 
@@ -809,7 +814,7 @@ SWITCH_STANDARD_APP(ards_function)
 		///////////////////////////////////////////////////////////////////////////////
 		//<action application="playback" data="{timeout=15000}file_string://${sound_dir}/music/8000/music1.wav"/>
 
-		switch_status_t pstatus = switch_ivr_play_file(session, NULL, music, &args);
+		pstatus = switch_ivr_play_file(session, NULL, music, &args);
 
 
 		if (moh_step == ARDS_PRE_MOH){
@@ -855,7 +860,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 		Inform_ards(ARDS_COMPLETED, uuid, "routed",atoi(company),atoi(tenant));
 
-		switch_event_t *event;
+		
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "routed");
@@ -882,6 +887,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_channel_t *member_channel = NULL;
 	const char *cid_name = NULL;
 	const char *cid_number = NULL;
+	const char *skill = NULL;
+	const char *caller_name = NULL;
+	const char *caller_number = NULL;
+	const char *calling_number = NULL;
 	const char *p;
 	switch_event_t *event;
 	char *expandedx;
@@ -891,6 +900,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	
 
 	if (member_session) {
+
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "OutBound Started");
+
+
 
 		member_channel = switch_core_session_get_channel(member_session);
 
@@ -904,12 +917,20 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		switch_channel_set_variable(member_channel, "ards_agent_found", "true");
 
 
+		skill = switch_channel_get_variable(member_channel, "ards_skill");
+		caller_name = switch_channel_get_variable(member_channel, "Caller-Caller-ID-Name");
+		caller_number = switch_channel_get_variable(member_channel, "Caller-Caller-ID-Number");
+		calling_number = switch_channel_get_variable(member_channel, "Caller-Destination-Number");
+
+
 		if (!(cid_name = switch_channel_get_variable(member_channel, "effective_caller_id_name"))) {
-			cid_name = h->member_cid_name;
+			cid_name = caller_name;
 		}
 		if (!(cid_number = switch_channel_get_variable(member_channel, "effective_caller_id_number"))) {
-			cid_number = h->member_cid_number;
+			cid_number = caller_number;
 		}
+
+
 		
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_name to: %s\n", cid_name);
 
@@ -938,8 +959,56 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-found");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Caller-Number", caller_number);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Caller-Name", caller_name);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Calling-Number", calling_number);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 			switch_event_fire(&event);
 		}
+
+
+
+		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
+
+		//strcasecmp(argv[2], "reloadxml")
+		
+		if (!strcasecmp(h->originate_type,"PRIVATE")){
+
+			char *ctx = switch_mprintf("user/%s@%s", h->originate_user, h->originate_domain);
+			h->originate_string = switch_core_strdup(h->pool, ctx);
+			switch_safe_free(ctx);
+		}
+		else if (!strcasecmp(h->originate_type, "PUBLIC")){
+
+			char *ctx = switch_mprintf("sofia/external/%s@%s", h->originate_user, h->originate_domain);
+			switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "sip_h_DVP-DESTINATION-TYPE", "%s", "PUBLIC_USER");
+			h->originate_string = switch_core_strdup(h->pool, ctx);
+			switch_safe_free(ctx);
+
+
+		}
+		else if (!strcasecmp(h->originate_type, "TRUNK")){
+
+			char *ctx = switch_mprintf("sofia/external/%s@%s", h->originate_user, h->originate_domain);
+			h->originate_string = switch_core_strdup(h->pool, ctx);
+			switch_safe_free(ctx);
+
+
+		}
+		else {
+
+			char *ctx = switch_mprintf("user/%s@%s", h->originate_user, h->originate_domain);
+			h->originate_string = switch_core_strdup(h->pool, ctx);
+			switch_safe_free(ctx);
+
+		}
+
+
+
+
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -994,9 +1063,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					}
 				}
 
-
-
-
 			}
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1007,6 +1073,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent-UUID", switch_core_session_get_uuid(agent_session));
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-connected");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 				switch_event_fire(&event);
 			}
 
@@ -1024,6 +1091,17 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				switch_yield(100000);
 			}
+
+
+			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent-UUID", switch_core_session_get_uuid(agent_session));
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-disconnected");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_fire(&event);
+			}
+
 		}
 		else{
 
@@ -1036,6 +1114,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-rejected");
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 					switch_event_fire(&event);
 				}
 
@@ -1070,7 +1149,8 @@ SWITCH_STANDARD_API(ards_route_function)
 	
 
 	////////////////////////////////////////////////////////route thread start/////////////////////////////////////
-	char *mydata = NULL, *argv[8] = { 0 };
+	char *mydata = NULL;
+		//*argv[8] = { 0 };
 	//const char *url = NULL;
 	//const char *uuid = NULL;
 	//const char *company = NULL;
@@ -1080,7 +1160,7 @@ SWITCH_STANDARD_API(ards_route_function)
 	//const char *type = NULL;
 	//const char *category = NULL;
 
-	int argc;
+	//int argc;
 	cJSON *cj, *cjp, *cjr;
 	
 	switch_thread_t *thread;
@@ -1107,7 +1187,7 @@ SWITCH_STANDARD_API(ards_route_function)
 
 
 
-	argc = switch_separate_string(mydata, '|', argv, (sizeof(argv) / sizeof(argv[0])));
+	//argc = switch_separate_string(mydata, '|', argv, (sizeof(argv) / sizeof(argv[0])));
 
 
 	///////////////////////////////try json parse/////////////////////////////////////////////////////////////////////////////////
@@ -1174,22 +1254,46 @@ SWITCH_STANDARD_API(ards_route_function)
 
 						if (!strcasecmp(namex, "Extention")) {
 
-							/*
-
-							char *ctx = switch_mprintf("authorization: %d#%d", tenant, company);
-							headers = switch_curl_slist_append(headers, ctx);
-							switch_safe_free(ctx);
-
-							*/
-
-							
+	
 							int valuex = cjr->valueint;
 
-							char *ctx = switch_mprintf("user/%d", valuex);
-							h->originate_string = switch_core_strdup(h->pool, ctx);
+							char *ctx = switch_mprintf("%d", valuex);
+							h->originate_user = switch_core_strdup(h->pool, ctx);
 							switch_safe_free(ctx);
 
 						}
+
+						else if (!strcasecmp(namex, "ContactType")){
+							
+							char *valuex = cjr->valuestring;
+
+							h->originate_type = switch_core_strdup(h->pool, valuex);
+
+
+
+						}
+
+						else if (!strcasecmp(namex, "Domain")){
+
+							char *valuex = cjr->valuestring;
+
+							h->originate_domain = switch_core_strdup(h->pool, valuex);
+
+
+
+						}
+
+						else if (!strcasecmp(namex, "ContactName")){
+
+							char *valuex = cjr->valuestring;
+
+							h->originate_user = switch_core_strdup(h->pool, valuex);
+
+
+
+						}
+
+
 
 
 						else if (!strcasecmp(namex, "ResourceId")) {
@@ -1238,6 +1342,7 @@ SWITCH_STANDARD_API(ards_route_function)
 		*/
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+		
 
 		switch_threadattr_create(&thd_attr, h->pool);
 		switch_threadattr_detach_set(thd_attr, 1);
