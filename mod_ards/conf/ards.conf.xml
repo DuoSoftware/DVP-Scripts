@@ -1,0 +1,22 @@
+<configuration name="ards.conf" description="ARDS">
+  <settings>
+    <param name="url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/request"/>
+    <param name="register-url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/requestserver"/>
+    <param name="xml_rpc" value="http://192.168.0.70:8080/api/ards_route"/>
+
+
+    <param name="security_token" value="1#1"/>
+
+    <param name="profile-url" value="http://127.0.0.1:9093/DVP/API/1.0.0/QueueMusic/plain/Profile"/>
+    <param name="upload-url" value="http://192.168.0.62:8081/DVP/API/6.0/FileService/File/Upload"/>
+
+<param name="notification_url" value="http://192.168.0.88:8086/DVP/API/6.0/NotificationService/Notification/initiate"/>
+
+
+
+
+    <param name="record-format" value="$${base_dir}/recordings/sales/${strftime(%Y-%m-%d-%H-%M-%S)}.${destination_number}.${caller_id_number}.${uuid}.wav"/>
+
+    <!--param name="dbname" value="/dev/shm/callcenter.db"/-->
+  </settings>
+</configuration> 

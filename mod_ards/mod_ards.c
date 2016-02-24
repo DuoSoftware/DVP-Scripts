@@ -46,7 +46,9 @@ static struct {
 	char *registerurl;
 	char *qurl;
 	char *uurl;
+	char *nurl;
 	char *rpc_url;
+	char *security_token;
 	char *recordPath;
 	switch_mutex_t *mutex;
 	switch_memory_pool_t *pool;
@@ -170,6 +172,15 @@ static switch_status_t load_config(void)
 			else if (!strcasecmp(var, "xml_rpc")) {
 				globals.rpc_url = strdup(val);
 			}
+			else if (!strcasecmp(var, "security_token")) {
+				globals.security_token = strdup(val);
+			}
+			else if (!strcasecmp(var, "notification_url")) {
+				globals.nurl = strdup(val);
+			}
+
+
+			
 
 		
 		}
@@ -228,7 +239,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	long httpRes = 0;
 
 	char tmpurl[1000];
-	char *ctx = switch_mprintf("authorization: %d#%d", tenant, company);
+	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
@@ -331,7 +342,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	char *p = "{}";
 
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
-	char *ctx = switch_mprintf("authorization: %d#%d", tenant, company);
+	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 
 	const char *strings[] = { skill };
 
@@ -460,6 +471,112 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 }
 
+static void send_notification(const char* resourceid, const char *message){
+
+	const char *url = globals.nurl;
+	switch_memory_pool_t *pool = NULL;
+	switch_CURL *curl_handle = NULL;
+	http_data_t *http_data = NULL;
+	switch_curl_slist_t *headers = NULL;
+	//const char *data = NULL;
+	//switch_curl_slist_t *headers = NULL;
+	long httpRes = 0;
+	cJSON *jdata;
+	cJSON *a;
+
+	//char tmpurl[1000];
+	char msg[1000];
+	char *p = "{}";
+
+	char *ct = switch_mprintf("Content-Type: %s", "application/json");
+	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
+
+
+	switch_event_t *event;
+
+	switch_core_new_memory_pool(&pool);
+	curl_handle = switch_curl_easy_init();
+
+	http_data = switch_core_alloc(pool, sizeof(http_data_t));
+	memset(http_data, 0, sizeof(http_data_t));
+	http_data->pool = pool;
+
+	http_data->max_bytes = 64000;
+	SWITCH_STANDARD_STREAM(http_data->stream);
+
+
+	
+
+
+
+
+	jdata = cJSON_CreateObject();
+	cJSON_AddStringToObject(jdata, "To", resourceid);
+	cJSON_AddNumberToObject(jdata, "Timeout", 1000);
+	cJSON_AddStringToObject(jdata, "Direction", "STATELESS");
+	cJSON_AddStringToObject(jdata, "Message", message);
+	cJSON_AddStringToObject(jdata, "From", "CALLSERVER");
+	cJSON_AddStringToObject(jdata, "Callback", "");
+
+
+	
+	
+
+	p = cJSON_Print(jdata);
+
+
+
+	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, strlen(p));
+	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, (void *)p);
+
+
+	headers = switch_curl_slist_append(headers, ct);
+	headers = switch_curl_slist_append(headers, ctx);
+	switch_safe_free(ct);
+	switch_safe_free(ctx);
+
+	//switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Post data: %s\n", data);
+
+	switch_curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 15);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_URL, url);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, file_callback);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)http_data);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, header_callback);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)http_data);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "freeswitch-curl/1.0");
+	switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
+
+	switch_curl_easy_perform(curl_handle);
+	switch_curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpRes);
+	switch_curl_easy_cleanup(curl_handle);
+	switch_curl_slist_free_all(headers);
+
+	if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
+
+		http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
+	}
+
+	http_data->http_response_code = httpRes;
+
+	switch_safe_free(http_data->stream.data);
+
+	if (pool) {
+		switch_core_destroy_memory_pool(&pool);
+	}
+
+
+
+	switch_safe_free(p);
+	cJSON_Delete(jdata);
+	jdata = NULL;
+
+
+
+}
+
 static void register_ards(int company, int tenant){
 
 	//const char *url = globals.url;
@@ -480,7 +597,7 @@ static void register_ards(int company, int tenant){
 	char *p = "{}";
 
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
-	char *ctx = switch_mprintf("authorization: %d#%d", tenant, company);
+	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
@@ -850,6 +967,8 @@ SWITCH_STANDARD_APP(ards_function)
 
 		
 
+		
+
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "client-left");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
@@ -894,12 +1013,29 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	const char *p;
 	switch_event_t *event;
 	char *expandedx;
+
+
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
 
 	switch_core_session_t *member_session = switch_core_session_locate(h->member_uuid);
 	
 
 	if (member_session) {
+
+
+		////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
+		switch_bind_flag_t bind_flags = 0;
+		int kval = switch_dtmftoi("3");
+		bind_flags |= SBF_DIAL_BLEG;
+
+
+		if (switch_ivr_bind_dtmf_meta_session(member_session, kval, bind_flags, "execute_extension::att_xfer XML features") != SWITCH_STATUS_SUCCESS) {
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
+		}
+
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "OutBound Started");
 
@@ -937,25 +1073,20 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		switch_event_create(&ovars, SWITCH_EVENT_REQUEST_PARAMS);
 		//////add necessory event details/////////////////////////////////
-		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_client_uuid", "%s", h->member_uuid);
-		//switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_company", "%s", h->company);
-		//switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_tenant", "%s", h->tenant);
 
+		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_client_uuid", "%s", h->member_uuid);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "companyid", "%s", h->company);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "tenantid", "%s", h->tenant);
-
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_class", "%s", h->class);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_type", "%s", h->type);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_category", "%s", h->category);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_id", "%s", h->resource_id);
-
-
-
 		switch_channel_process_export(member_channel, NULL, ovars, "ards_export_vars");
 
 		
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-found");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
@@ -965,13 +1096,17 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Calling-Number", calling_number);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 			switch_event_fire(&event);
+		
 		}
 
 
+		char* msg = switch_mprintf("agent_found,%q,%q,%q,%q", h->member_uuid,skill, caller_number, caller_name);
+
+		send_notification(h->resource_id, msg);
 
 		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
 
-		//strcasecmp(argv[2], "reloadxml")
+
 		
 		if (!strcasecmp(h->originate_type,"PRIVATE")){
 
@@ -990,7 +1125,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 		else if (!strcasecmp(h->originate_type, "TRUNK")){
 
-			char *ctx = switch_mprintf("sofia/external/%s@%s", h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("sofia/gateway/%s/%s", h->originate_domain, h->originate_user);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 
@@ -1026,7 +1161,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		if (status == SWITCH_STATUS_SUCCESS) {
 
-			//const char *agent_uuid = switch_core_session_get_uuid(agent_session);
+
 			switch_channel_t *member_channel = switch_core_session_get_channel(member_session);
 			switch_channel_t *agent_channel = switch_core_session_get_channel(agent_session);
 
@@ -1042,15 +1177,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				}
 
 				////////////////////////////////////////upload end of the session////////////////////////////////////////////
-				/*
-
-				string options = string.Format("curl_sendfile:{0} file=$${{base_dir}}/recordings/{1}.{6} class=CALLSERVER&type=CALL&category=CONVERSATION&company={2}&tenent={3}&server={4}&callID={1}&securitytoken={5} event {1}", url, this.CallID, company, tenent, id, V5Utils.V5Utility.GetSecurityToken(company, tenent, GetChannelData("AuthName"), GetChannelData("PassWord")), recordType);
-				SetChannelData("record_post_process_exec_api", options);
-
-
-				string terminators = string.Format("sendmsg\ncall-command: execute\nexecute-app-name:set\nexecute-app-arg: {0}={1}\n\n", key, value);
-				*/
-
+				
 
 				if (globals.uurl){
 					char uploaddata[1000];
@@ -1077,6 +1204,12 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_fire(&event);
 			}
 
+			char* msg = switch_mprintf("agent_connected,%q", h->member_uuid);
+
+			send_notification(h->resource_id, msg);
+
+
+
 
 
 			switch_ivr_uuid_bridge(h->member_session_uuid, switch_core_session_get_uuid(agent_session));
@@ -1102,6 +1235,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_fire(&event);
 			}
 
+			char* msgx = switch_mprintf("agent_disconnected,%q", h->member_uuid);
+			send_notification(h->resource_id, msgx);
+
+
 		}
 		else{
 
@@ -1115,8 +1252,13 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-rejected");
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
 					switch_event_fire(&event);
 				}
+
+
+				char* msg = switch_mprintf("agent_rejected,%q", h->member_uuid);
+				send_notification(h->resource_id, msg);
 
 
 			}
@@ -1125,16 +1267,19 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 	}
 	else{
+		
 		Inform_ards(ARDS_EXPIRE, h->member_uuid, "nosession", atoi(h->company), atoi(h->tenant));
 
 	}
 
 	if (agent_session) {
+		
 		switch_core_session_rwunlock(agent_session);
 	}
 	if (member_session) {
+		
 		switch_core_session_rwunlock(member_session);
-		//switch_channel_set_variable(member_channel, "ards_agent_found", "true");
+
 	}
 
 
@@ -1150,17 +1295,8 @@ SWITCH_STANDARD_API(ards_route_function)
 
 	////////////////////////////////////////////////////////route thread start/////////////////////////////////////
 	char *mydata = NULL;
-		//*argv[8] = { 0 };
-	//const char *url = NULL;
-	//const char *uuid = NULL;
-	//const char *company = NULL;
-	//const char *tenant = NULL;
-	//const char *resource_id = NULL;
-	//const char *class = NULL;
-	//const char *type = NULL;
-	//const char *category = NULL;
 
-	//int argc;
+
 	cJSON *cj, *cjp, *cjr;
 	
 	switch_thread_t *thread;
@@ -1187,16 +1323,6 @@ SWITCH_STANDARD_API(ards_route_function)
 
 
 
-	//argc = switch_separate_string(mydata, '|', argv, (sizeof(argv) / sizeof(argv[0])));
-
-
-	///////////////////////////////try json parse/////////////////////////////////////////////////////////////////////////////////
-	//{ "SessionID": "23543235", ResourceInfo: {"Extention":3562, "DialHostName":"192.168.2.38"} }
-
-
-	
-
-
 	if ((cj = cJSON_Parse(mydata)) ) {
 
 
@@ -1215,9 +1341,7 @@ SWITCH_STANDARD_API(ards_route_function)
 
 					h->type = switch_core_strdup(h->pool, value);
 					
-					
-					
-					
+						
 
 				}
 				else if (!strcasecmp(name, "Category")) {
@@ -1261,6 +1385,7 @@ SWITCH_STANDARD_API(ards_route_function)
 							h->originate_user = switch_core_strdup(h->pool, ctx);
 							switch_safe_free(ctx);
 
+
 						}
 
 						else if (!strcasecmp(namex, "ContactType")){
@@ -1270,8 +1395,8 @@ SWITCH_STANDARD_API(ards_route_function)
 							h->originate_type = switch_core_strdup(h->pool, valuex);
 
 
-
 						}
+
 
 						else if (!strcasecmp(namex, "Domain")){
 
@@ -1279,17 +1404,14 @@ SWITCH_STANDARD_API(ards_route_function)
 
 							h->originate_domain = switch_core_strdup(h->pool, valuex);
 
-
-
 						}
+
 
 						else if (!strcasecmp(namex, "ContactName")){
 
 							char *valuex = cjr->valuestring;
 
 							h->originate_user = switch_core_strdup(h->pool, valuex);
-
-
 
 						}
 
