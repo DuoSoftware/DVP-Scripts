@@ -482,17 +482,17 @@ static void send_notification(const char* resourceid, const char *message){
 	//switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 	cJSON *jdata;
-	cJSON *a;
+//	cJSON *a;
 
 	//char tmpurl[1000];
-	char msg[1000];
+//	char msg[1000];
 	char *p = "{}";
 
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 
 
-	switch_event_t *event;
+//	switch_event_t *event;
 
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
