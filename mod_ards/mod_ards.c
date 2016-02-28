@@ -1013,6 +1013,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	const char *p;
 	switch_event_t *event;
 	char *expandedx;
+	char* msg;
 
 
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
@@ -1100,7 +1101,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 
-		char* msg = switch_mprintf("agent_found,%q,%q,%q,%q", h->member_uuid,skill, caller_number, caller_name);
+		msg = switch_mprintf("agent_found,%q,%q,%q,%q", h->member_uuid,skill, caller_number, caller_name);
 
 		send_notification(h->resource_id, msg);
 
@@ -1204,7 +1205,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_fire(&event);
 			}
 
-			char* msg = switch_mprintf("agent_connected,%q", h->member_uuid);
+			msg = switch_mprintf("agent_connected,%q", h->member_uuid);
 
 			send_notification(h->resource_id, msg);
 
@@ -1235,8 +1236,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_fire(&event);
 			}
 
-			char* msgx = switch_mprintf("agent_disconnected,%q", h->member_uuid);
-			send_notification(h->resource_id, msgx);
+			msg = switch_mprintf("agent_disconnected,%q", h->member_uuid);
+			send_notification(h->resource_id, msg);
 
 
 		}
@@ -1257,7 +1258,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				}
 
 
-				char* msg = switch_mprintf("agent_rejected,%q", h->member_uuid);
+				msg = switch_mprintf("agent_rejected,%q", h->member_uuid);
 				send_notification(h->resource_id, msg);
 
 
