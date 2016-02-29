@@ -79,9 +79,8 @@ struct call_helper {
 	const char *company;
 	const char *tenant;
 	const char *resource_id;
-	const char *class;
-	const char *type;
-	const char *category;
+	const char *servertype;
+	const char *requesttype;
 	const char *originate_type;
 	const char *originate_domain;
 	const char *originate_user;
@@ -1078,9 +1077,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_client_uuid", "%s", h->member_uuid);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "companyid", "%s", h->company);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "tenantid", "%s", h->tenant);
-		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_class", "%s", h->class);
-		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_type", "%s", h->type);
-		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_category", "%s", h->category);
+		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_servertype", "%s", h->servertype);
+		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_requesttype", "%s", h->requesttype);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_id", "%s", h->resource_id);
 		switch_channel_process_export(member_channel, NULL, ovars, "ards_export_vars");
 
@@ -1332,24 +1330,20 @@ SWITCH_STANDARD_API(ards_route_function)
 			char *value = cjp->valuestring;
 
 			if (name && value) {
-				if (!strcasecmp(name, "Class")) {
+				if (!strcasecmp(name, "ServerType")) {
 
 					
-					h->class = switch_core_strdup(h->pool, value);
+					h->servertype = switch_core_strdup(h->pool, value);
 
 				}
-				else if (!strcasecmp(name, "Type")) {
+				else if (!strcasecmp(name, "RequestType")) {
 
-					h->type = switch_core_strdup(h->pool, value);
+					h->requesttype = switch_core_strdup(h->pool, value);
 					
 						
 
 				}
-				else if (!strcasecmp(name, "Category")) {
-
-					h->category = switch_core_strdup(h->pool, value);
-
-				}
+				
 				else if (!strcasecmp(name, "SessionID")) {
 
 					
