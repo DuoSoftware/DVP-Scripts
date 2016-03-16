@@ -43,11 +43,11 @@ sed -i 's^<param name="ext-sip-ip" value="auto-nat"/>^<param name="ext-sip-ip" v
 fi
 
 
-if [[! -z $SYS_ARDS_HOST && ! -z $SYS_ARDS_VERSION ]]
+if [[! -z $SYS_ARDSLITESERVICE_HOST && ! -z $SYS_ARDSLITESERVICE_VERSION ]]
 then
-sed -i 's^<param name="url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/request"/>^<param name="url" value="http://'$SYS_ARDS_HOST'/DVP/API/'$SYS_ARDS_VERSION'/ARDS/request"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
-sed -i 's^<param name="register-url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/requestserver"/>^<param name="register-url" value="http://'$SYS_ARDS_HOST'/DVP/API/'$SYS_ARDS_VERSION'/ARDS/requestserver"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
-sed -i 's^<param name="xml_rpc" value="http://192.168.0.70:8080/api/ards_route"/>^<param name="xml_rpc" value="http://'$SYS_ARDS_HOST'/api/ards_route"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
+sed -i 's^<param name="url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/request"/>^<param name="url" value="http://'$SYS_ARDSLITESERVICE_HOST'/DVP/API/'$SYS_ARDSLITESERVICE_VERSION'/ARDS/request"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
+sed -i 's^<param name="register-url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/requestserver"/>^<param name="register-url" value="http://'$SYS_ARDSLITESERVICE_HOST'/DVP/API/'$SYS_ARDSLITESERVICE_VERSION'/ARDS/requestserver"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
+sed -i 's^<param name="xml_rpc" value="http://192.168.0.70:8080/api/ards_route"/>^<param name="xml_rpc" value="http://'$SYS_ARDSLITESERVICE_HOST'/api/ards_route"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
 fi
 
 #sed -i 's^<param name="security_token" value="1#1"/>^
