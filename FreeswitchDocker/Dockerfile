@@ -43,6 +43,7 @@ RUN /usr/src/freeswitch.git; perl -i -pe 's/#applications\/mod_curl/applications
 RUN /usr/src/freeswitch.git; perl -i -pe 's/#applications\/mod_spy/applications\/mod_spy/g' modules.conf
 RUN /usr/src/freeswitch.git; perl -i -pe 's/#formats\/mod_shout/formats\/mod_shout/g' modules.conf
 RUN /usr/src/freeswitch.git; perl -i -pe 's/#xml_int\/mod_xml_curl/xml_int\/mod_xml_curl/g' modules.conf
+RUN /usr/src/freeswitch.git; perl -i -pe 's/#asr_tts\/mod_flite/asr_tts\/mod_flite/g' modules.conf
 RUN /usr/src/freeswitch.git; echo 'applications/mod_ards' >> modules.conf
 RUN /usr/src/freeswitch.git; make
 RUN /usr/src/freeswitch.git; make install
