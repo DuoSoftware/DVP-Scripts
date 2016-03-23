@@ -11,6 +11,9 @@ sed -i 's^<!-- <load module="mod_xml_curl"/> -->^<load module="mod_xml_curl"/>^g
 sed -i 's^<!-- <load module="mod_xml_cdr"/> -->^<load module="mod_xml_cdr"/>^g' /usr/local/freeswitch/conf/autoload_configs/modules.conf.xml;
 sed -i 's^<!-- <load module="mod_xml_scgi"/> -->^<load module="mod_xml_scgi"/>^g' /usr/local/freeswitch/conf/autoload_configs/modules.conf.xml;
 sed -i 's^</modules>^<load module="mod_ards"/> </modules>^g' /usr/local/freeswitch/conf/autoload_configs/modules.conf.xml;
+sed -i 's^<!--<load module="mod_h26x"/>-->^<load module="mod_h26x"/>^g' /usr/local/freeswitch/conf/autoload_configs/modules.conf.xml;
+sed -i 's^<X-PRE-PROCESS cmd="set" data="global_codec_prefs=OPUS,G722,PCMU,PCMA,VP8"/>^<X-PRE-PROCESS cmd="set" data="global_codec_prefs=OPUS,G722,PCMU,PCMA,VP8,H.264,H.263,H264,H263-1998"/>^g' /usr/local/freeswitch/conf/vars.xml
+sed -i 's^<X-PRE-PROCESS cmd="set" data="outbound_codec_prefs=OPUS,G722,PCMU,PCMA,VP8"/>^<X-PRE-PROCESS cmd="set" data="outbound_codec_prefs=OPUS,G722,PCMU,PCMA,VP8,H.264,H.263,H264,H263-1998"/>^g' /usr/local/freeswitch/conf/vars.xml
 #echo '<load module="mod_ards"/>' >> /usr/local/freeswitch/conf/autoload_configs/modules.conf.xml;
 
 #sed -i 's^param name="listen-ip" value="::"^param name="listen-ip" value="0.0.0.0"^g' /usr/local/freeswitch/conf/autoload_configs/event_socket.conf.xml;
