@@ -82,4 +82,10 @@ then
 sed -i 's^</settings>^<param name="switchname" value="'$SYS_FS_ID'"/></settings>^g' /usr/local/freeswitch/conf/autoload_configs/switch.conf.xml;
 fi
 
-/usr/local/freeswitch/bin/freeswitch -c
+mv run.sh start_script.sh;
+mv startfs.sh run.sh;
+sh ./run.sh;
+
+#/usr/local/freeswitch/bin/freeswitch -c
+
+

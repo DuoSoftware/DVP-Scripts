@@ -54,7 +54,9 @@ RUN rm -rf /usr/src/DVP-Scripts
 
 ADD vid.conf /etc/sysctl.d/vid.conf
 ADD run.sh /usr/local/freeswitch/run.sh
+ADD startfs.sh /usr/local/freeswitch/startfs.sh
 RUN chmod 777 /usr/local/freeswitch/run.sh
+RUN chmod 777 /usr/local/freeswitch/startfs.sh
 
 ENV FREESWITCH_PATH /usr/local/freeswitch
 
