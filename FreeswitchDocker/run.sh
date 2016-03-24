@@ -102,9 +102,3 @@ mv startfs.sh run.sh;
 sh ./run.sh;
 
 #/usr/local/freeswitch/bin/freeswitch -c
-
-
-
-
-
-aclip- local_IP
