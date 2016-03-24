@@ -26,6 +26,10 @@ sed -i 's^<permission name="dial-set-cid-number" value="false"/>^<permission nam
 sed -i 's^<permission name="dial-full-originate" value="false"/>^<permission name="dial-full-originate" value="true"/>^g' /usr/local/freeswitch/conf/autoload_configs/httapi.conf.xml;
 sed -i 's^<permission name="conference-set-profile" value="false"/>^<permission name="conference-set-profile" value="true"/>^g' /usr/local/freeswitch/conf/autoload_configs/httapi.conf.xml;
 
+sed -i 's^</network-lists>^<list name="any" default="allow"> <node type="allow" cidr="192.168.42.42/32"/> </list> </network-lists>^g' /usr/local/freeswitch/conf/autoload_configs/acl.conf.xml
+
+sed -i 's^</settings>^<param name="apply-inbound-acl" value="any"/> </settings>^g' /usr/local/freeswitch/conf/autoload_configs/event_socket.conf.xml;
+
 
 #sed -i 's^param name="listen-ip" value="::"^param name="listen-ip" value="0.0.0.0"^g' /usr/local/freeswitch/conf/autoload_configs/event_socket.conf.xml;
 if [[ ! -z $SYS_FS_EVENTSOCKET_PORT ]]
@@ -57,7 +61,7 @@ sed -i 's^<param name="ext-sip-ip" value="auto-nat"/>^<param name="ext-sip-ip" v
 fi
 
 
-if [[! -z $SYS_ARDSLITESERVICE_HOST && ! -z $SYS_ARDSLITESERVICE_VERSION ]]
+if [[ ! -z $SYS_ARDSLITESERVICE_HOST && ! -z $SYS_ARDSLITESERVICE_VERSION ]]
 then
 sed -i 's^<param name="url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/request"/>^<param name="url" value="http://'$SYS_ARDSLITESERVICE_HOST'/DVP/API/'$SYS_ARDSLITESERVICE_VERSION'/ARDS/request"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
 sed -i 's^<param name="register-url" value="http://www.google.com/DVP/API/1.0.0.0/ARDS/requestserver"/>^<param name="register-url" value="http://'$SYS_ARDSLITESERVICE_HOST'/DVP/API/'$SYS_ARDSLITESERVICE_VERSION'/ARDS/requestserver"/>^g' /usr/local/freeswitch/conf/autoload_configs/ards.conf.xml;
@@ -100,3 +104,7 @@ sh ./run.sh;
 #/usr/local/freeswitch/bin/freeswitch -c
 
 
+
+
+
+aclip- local_IP
