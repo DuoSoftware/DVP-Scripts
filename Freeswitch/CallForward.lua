@@ -2,8 +2,8 @@
 --table of return cause of phone like dictionary--
 --tableName["RETURN_STRING_OF_SIP_PHONE"] = "CAUSE" -- 
 obParam = {}
-obParam["USER_BUSY"] = "USER_BUSY"
-obParam["NO_USER_RESPONSE"] = "USER_BUSY"
+obParam["USER_BUSY"] = "BUSY"
+obParam["NO_USER_RESPONSE"] = "BUSY"
 --obParam["USER_NOT_REGISTERED"] = "USER_BUSY"--
 obParam["NO_ANSWER"] = "NO_ANSWER"
 
@@ -62,7 +62,7 @@ str_var = contex_var.."/"..fwdKey_var.."/"..company_var.."/"..tenant_var.."/"..c
 
 	freeswitch.consoleLog("info", "Return_String = " ..str_var .. "\n")
 
-    if ( cFCause == "USER_BUSY" ) then          
+    if ( cFCause == "BUSY" ) then          
 	session:transfer(str_var, "XML", contex2_var)
 	--session:transfer("5000", "XML", "default")
     elseif ( cFCause == "NO_ANSWER" ) then
