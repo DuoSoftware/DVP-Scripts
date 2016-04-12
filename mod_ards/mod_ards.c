@@ -239,6 +239,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 	char tmpurl[1000];
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
+	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
 
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
@@ -252,11 +253,11 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 	switch (type){
 	case ARDS_COMPLETED:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", url, uuid);
+		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/%s", url, uuid,"NONE");
 		break;
 
 	case ARDS_REMOVE:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", url, uuid);
+		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/%s", url, uuid,"NONE");
 		break;
 
 	case ARDS_EXPIRE:
@@ -282,6 +283,11 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	
 	headers = switch_curl_slist_append(headers, ctx);
 	switch_safe_free(ctx);
+
+	headers = switch_curl_slist_append(headers, cto);
+	switch_safe_free(cto);
+	
+
 
 
 
@@ -342,6 +348,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
+	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
 
 	const char *strings[] = { skill };
 
@@ -368,9 +375,9 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	jdata = cJSON_CreateObject();
 	cJSON_AddNumberToObject(jdata, "Company", company);
 	cJSON_AddNumberToObject(jdata, "Tenant", tenant);
-	cJSON_AddStringToObject(jdata, "Class", "CALLSERVER");
-	cJSON_AddStringToObject(jdata, "Type", "ARDS");
-	cJSON_AddStringToObject(jdata, "Category", "CALL");
+	cJSON_AddStringToObject(jdata, "ServerType", "CALLSERVER");
+	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
+	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddStringToObject(jdata, "SessionId", uuid);
 	cJSON_AddStringToObject(jdata, "RequestServerId", "1");
 	cJSON_AddStringToObject(jdata, "Priority", "L");
@@ -416,8 +423,11 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	
 	headers = switch_curl_slist_append(headers, ct);
 	headers = switch_curl_slist_append(headers, ctx);
+	headers = switch_curl_slist_append(headers, cto);
+	switch_safe_free(cto);
 	switch_safe_free(ct);
 	switch_safe_free(ctx);
+
 
 	//switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Post data: %s\n", data);
 
@@ -626,14 +636,19 @@ static void register_ards(int company, int tenant){
 
 	switch_snprintf(msg, sizeof(msg), "%d|%d|CALLSERVER|ARDS|CALL|%s|%d", company, tenant, callback, 1);
 
+
+
+
+
+
 	
 	jdata = cJSON_CreateObject();
 	cJSON_AddNumberToObject(jdata, "Company", company);
 	cJSON_AddNumberToObject(jdata, "Tenant", tenant);
-	cJSON_AddStringToObject(jdata, "Class", "CALLSERVER");
-	cJSON_AddStringToObject(jdata, "Type", "ARDS");
+	cJSON_AddStringToObject(jdata, "ServerType", "CALLSERVER");
+	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
 	cJSON_AddStringToObject(jdata, "CallbackUrl", callback);
-	cJSON_AddStringToObject(jdata, "Category", "CALL");
+	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddNumberToObject(jdata, "ServerID", 1);
 	p = cJSON_Print(jdata);
 	
@@ -675,6 +690,7 @@ static void register_ards(int company, int tenant){
 
 	switch_curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 15);
+	switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_URL, registerurl);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
@@ -719,7 +735,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 	switch_memory_pool_t *pool = NULL;
 	switch_CURL *curl_handle = NULL;
 	http_data_t *http_data = NULL;
-	//switch_curl_slist_t *headers = NULL;
+	switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 	//char *uuid = switch_core_session_get_uuid(session);
 
@@ -745,6 +761,11 @@ SWITCH_STANDARD_APP(queue_music_function)
 		SWITCH_STANDARD_STREAM(http_data->stream);
 
 
+		char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
+		headers = switch_curl_slist_append(headers, ctx);
+		switch_safe_free(ctx);
+
+
 		//struct data_stream dstream = { NULL };
 		//switch_curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 		switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPGET, 1);
@@ -754,6 +775,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 		switch_curl_easy_setopt(curl_handle, CURLOPT_URL, tmpurl);
 		switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 		switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, file_callback);
+		switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
 		switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)http_data);
 		switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, header_callback);
 		switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)http_data);
@@ -762,7 +784,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 		switch_curl_easy_perform(curl_handle);
 		switch_curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpRes);
 		switch_curl_easy_cleanup(curl_handle);
-		//switch_curl_slist_free_all(headers);
+		switch_curl_slist_free_all(headers);
 
 		if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
 
@@ -1180,7 +1202,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				if (globals.uurl){
 					char uploaddata[1000];
-					switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&REFERENCEID=%s", globals.uurl, globals.recordPath, h->member_uuid);
+					switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&REFERENCEID=%s", globals.uurl, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid);
 					expandedx = switch_channel_expand_variables(member_channel, uploaddata);
 					switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
 
@@ -1294,7 +1316,7 @@ SWITCH_STANDARD_API(ards_route_function)
 
 	////////////////////////////////////////////////////////route thread start/////////////////////////////////////
 	char *mydata = NULL;
-
+	
 
 	cJSON *cj, *cjp, *cjr;
 	
@@ -1461,12 +1483,24 @@ SWITCH_STANDARD_API(ards_route_function)
 
 		
 
-		switch_threadattr_create(&thd_attr, h->pool);
-		switch_threadattr_detach_set(thd_attr, 1);
-		switch_threadattr_stacksize_set(thd_attr, SWITCH_THREAD_STACKSIZE);
-		switch_thread_create(&thread, thd_attr, outbound_agent_thread_run, h, h->pool);
+		if (!zstr(h->resource_id) && !zstr(h->member_uuid) && !zstr(h->servertype) && !zstr(h->requesttype) && !zstr(h->company) && !zstr(h->tenant) && !zstr(h->originate_domain) && !zstr(h->originate_user) && !zstr(h->originate_type)){
 
-		stream->write_function(stream, "+OK");
+
+			switch_threadattr_create(&thd_attr, h->pool);
+			switch_threadattr_detach_set(thd_attr, 1);
+			switch_threadattr_stacksize_set(thd_attr, SWITCH_THREAD_STACKSIZE);
+			switch_thread_create(&thread, thd_attr, outbound_agent_thread_run, h, h->pool);
+
+			stream->write_function(stream, "+OK");
+
+			
+		}
+		else
+		{
+			stream->write_function(stream, "-ERR");
+
+
+		}
 
 		cJSON_Delete(cj);
 
@@ -1487,6 +1521,7 @@ SWITCH_STANDARD_API(ards_url_test)
 }
 
 /* Macro expands to: switch_status_t mod_ards_load(switch_loadable_module_interface_t **module_interface, switch_memory_pool_t *pool) */
+ 
 SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 {
 	switch_application_interface_t *app_interface;
@@ -1527,6 +1562,7 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 /*
 Called when the system shuts down
 Macro expands to: switch_status_t mod_ards_shutdown() */
+
 SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_ards_shutdown)
 {
 	
