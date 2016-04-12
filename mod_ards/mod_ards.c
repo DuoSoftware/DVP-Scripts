@@ -738,6 +738,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 	switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 	//char *uuid = switch_core_session_get_uuid(session);
+        char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 
 	const char *profile = switch_channel_get_variable(channel, "ards_profile");
 
@@ -761,7 +762,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 		SWITCH_STANDARD_STREAM(http_data->stream);
 
 
-		char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
+		
 		headers = switch_curl_slist_append(headers, ctx);
 		switch_safe_free(ctx);
 
