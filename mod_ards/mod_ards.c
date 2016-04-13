@@ -737,8 +737,8 @@ SWITCH_STANDARD_APP(queue_music_function)
 	http_data_t *http_data = NULL;
 	switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
+	char *ctx;
 	//char *uuid = switch_core_session_get_uuid(session);
-        char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 
 	const char *profile = switch_channel_get_variable(channel, "ards_profile");
 
@@ -762,7 +762,7 @@ SWITCH_STANDARD_APP(queue_music_function)
 		SWITCH_STANDARD_STREAM(http_data->stream);
 
 
-		
+		ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 		headers = switch_curl_slist_append(headers, ctx);
 		switch_safe_free(ctx);
 
@@ -856,13 +856,28 @@ SWITCH_STANDARD_APP(ards_function)
 
 
 	ards_moh_step moh_step = ARDS_PRE_MOH;
-	int time_a = atoi(announcement_time);
+
+	int time_a = 0;
+	
+
+		
+
+
 	switch_status_t pstatus;
 
 
 	const char *skill = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
+	int argc;
+	char *mydata = NULL, *argv[5];
+
+	if (announcement_time){
+		time_a = atoi(announcement_time);
+	}
+
+	mydata = strdup(data);
+	switch_separate_string(mydata, ',', argv, (sizeof(argv) / sizeof(argv[0])));
 
 	
 
@@ -876,20 +891,43 @@ SWITCH_STANDARD_APP(ards_function)
 	switch_channel_answer(channel);
 
 	if (!skill){
-		skill = "111111"; 
+		
+
+		if (argv[0]){ skill = argv[0]; }
+		else{
+		
+			skill = "111111";
+		}
 
 
 	}
 
 	if (!company){
 
-		company = "1";
+		if (argv[2]){
+		
+			company = argv[2];
+		} else{
+		
+			company = "1";
+		}
+
+		
 
 	}
 
 	if (!tenant){
 
-		tenant = "1";
+
+		if (argv[1]){
+			tenant = argv[1];
+		
+		}
+		else{
+		
+			tenant = "1";
+		}
+		
 	}
 
 
