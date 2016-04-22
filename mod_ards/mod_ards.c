@@ -350,6 +350,10 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
 
+	char *com = switch_mprintf("%d", company);
+
+	char *ten = switch_mprintf("%d", tenant);
+
 	const char *strings[] = { skill };
 
 	switch_event_t *event;
@@ -474,8 +478,16 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
+		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
+		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 		switch_event_fire(&event);
 	}
+
+
+	switch_safe_free(com);
+	switch_safe_free(ten);
 
 
 }
@@ -869,7 +881,7 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *skill = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
-	int argc;
+//	int argc;
 	char *mydata = NULL, *argv[5];
 
 	if (announcement_time){
@@ -1032,6 +1044,10 @@ SWITCH_STANDARD_APP(ards_function)
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "client-left");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
 		}
 	}
@@ -1044,6 +1060,10 @@ SWITCH_STANDARD_APP(ards_function)
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "routed");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
 		}
 		//Inform_ards(ARDS_REMOVE, "TEST", "TEST");
@@ -1074,6 +1094,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_event_t *event;
 	char *expandedx;
 	char* msg;
+	const char* company = h->company;
+	const char* tenant = h->tenant;
 
 
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
@@ -1155,6 +1177,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Caller-Name", caller_name);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Calling-Number", calling_number);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
 		
 		}
@@ -1261,6 +1287,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-connected");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 				switch_event_fire(&event);
 			}
 
@@ -1292,6 +1322,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-disconnected");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 				switch_event_fire(&event);
 			}
 
@@ -1313,6 +1347,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 					switch_event_fire(&event);
 				}
 
