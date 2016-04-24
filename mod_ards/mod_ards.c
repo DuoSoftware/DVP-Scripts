@@ -1137,9 +1137,9 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		skill = switch_channel_get_variable(member_channel, "ards_skill");
-		caller_name = switch_channel_get_variable(member_channel, "Caller-Caller-ID-Name");
-		caller_number = switch_channel_get_variable(member_channel, "Caller-Caller-ID-Number");
-		calling_number = switch_channel_get_variable(member_channel, "Caller-Destination-Number");
+		caller_name = switch_channel_get_variable(member_channel, "caller_id_name");
+		caller_number = switch_channel_get_variable(member_channel, "caller_id_number");
+		calling_number = switch_channel_get_variable(member_channel, "destination_number");
 
 
 		if (!(cid_name = switch_channel_get_variable(member_channel, "effective_caller_id_name"))) {
