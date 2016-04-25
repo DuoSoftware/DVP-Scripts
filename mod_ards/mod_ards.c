@@ -492,7 +492,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 }
 
-static void send_notification(const char* resourceid, const char *message){
+static void send_notification(const char* event, const char* uuid, int company, int tenant, const char* resourceid, const char *message){
 
 	const char *url = globals.nurl;
 	switch_memory_pool_t *pool = NULL;
@@ -510,7 +510,12 @@ static void send_notification(const char* resourceid, const char *message){
 	char *p = "{}";
 
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
+	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
+
+	char *cev = switch_mprintf("eventname: %s", event);
+
+	char *cuuid = switch_mprintf("eventuuid: %s", uuid);
 
 
 //	switch_event_t *event;
@@ -553,6 +558,12 @@ static void send_notification(const char* resourceid, const char *message){
 
 	headers = switch_curl_slist_append(headers, ct);
 	headers = switch_curl_slist_append(headers, ctx);
+	headers = switch_curl_slist_append(headers, cto);
+	headers = switch_curl_slist_append(headers, cev);
+	headers = switch_curl_slist_append(headers, cuuid);
+	switch_safe_free(cev);
+	switch_safe_free(cuuid);
+	switch_safe_free(cto);
 	switch_safe_free(ct);
 	switch_safe_free(ctx);
 
@@ -1188,7 +1199,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		msg = switch_mprintf("agent_found,%q,%q,%q,%q", h->member_uuid,skill, caller_number, caller_name);
 
-		send_notification(h->resource_id, msg);
+		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->resource_id, msg);
 
 		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
 
@@ -1296,7 +1307,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			msg = switch_mprintf("agent_connected,%q", h->member_uuid);
 
-			send_notification(h->resource_id, msg);
+			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
 
 
 
@@ -1330,7 +1341,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			}
 
 			msg = switch_mprintf("agent_disconnected,%q", h->member_uuid);
-			send_notification(h->resource_id, msg);
+			send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
 
 
 		}
@@ -1356,7 +1367,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 				msg = switch_mprintf("agent_rejected,%q", h->member_uuid);
-				send_notification(h->resource_id, msg);
+				send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
 
 
 			}
