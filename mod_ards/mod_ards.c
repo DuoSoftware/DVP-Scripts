@@ -355,7 +355,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	char *ten = switch_mprintf("%d", tenant);
 
-	//const char *strings[] = { skill };
+	const char *strings[20] = { 0 };
 
 	switch_event_t *event;
 
@@ -363,10 +363,18 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	char *mycmd = NULL;
 	char *argv[20] = { 0 };
+
 	int argc = 0;
 
 	if (!zstr(skill) && (mycmd = strdup(skill))) {
 		argc = switch_split(mycmd, ',', argv);
+	}
+
+
+	for (int i = 0; i < argc; i++){
+
+		strings[i] = (const char*)argv[i];
+
 	}
 
 
@@ -403,7 +411,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	
 
 
-	a = cJSON_CreateStringArray(argv, argc);
+	a = cJSON_CreateStringArray(strings, argc);
 	//cJSON_AddItemToArray(a, skill);
 	cJSON_AddItemToObject(jdata, "Attributes", a);
 	
