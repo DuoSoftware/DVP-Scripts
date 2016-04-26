@@ -359,6 +359,16 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	switch_event_t *event;
 
+
+
+	char *mycmd = NULL, *argv[20] = { 0 };
+	int argc = 0;
+
+	if (!zstr(skill) && (mycmd = strdup(skill))) {
+		argc = switch_split(mycmd, ',', argv);
+	}
+
+
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
 
@@ -392,7 +402,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	
 
 
-	a = cJSON_CreateStringArray(strings, 1);
+	a = cJSON_CreateStringArray(argv, argc);
 	//cJSON_AddItemToArray(a, skill);
 	cJSON_AddItemToObject(jdata, "Attributes", a);
 	
