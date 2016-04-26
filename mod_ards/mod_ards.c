@@ -355,13 +355,14 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	char *ten = switch_mprintf("%d", tenant);
 
-	const char *strings[] = { skill };
+	//const char *strings[] = { skill };
 
 	switch_event_t *event;
 
 
 
-	char *mycmd = NULL, *argv[20] = { 0 };
+	char *mycmd = NULL;
+	char *argv[20] = { 0 };
 	int argc = 0;
 
 	if (!zstr(skill) && (mycmd = strdup(skill))) {
