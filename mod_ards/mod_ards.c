@@ -46,6 +46,7 @@ static struct {
 	char *registerurl;
 	char *qurl;
 	char *uurl;
+	char *durl;
 	char *nurl;
 	char *rpc_url;
 	char *security_token;
@@ -165,6 +166,9 @@ static switch_status_t load_config(void)
 			}
 			else if (!strcasecmp(var, "upload-url")) {
 				globals.uurl = strdup(val);
+			}
+			else if (!strcasecmp(var, "download-url")) {
+				globals.durl = strdup(val);
 			}
 			else if (!strcasecmp(var, "register-url")) {
 				globals.registerurl = strdup(val);
@@ -368,6 +372,8 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	if (!zstr(skill) && (mycmd = strdup(skill))) {
 		argc = switch_split(mycmd, ',', argv);
+
+		switch_safe_free(mycmd);
 	}
 
 
@@ -508,6 +514,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	switch_safe_free(com);
 	switch_safe_free(ten);
+	
 
 
 }
@@ -790,8 +797,6 @@ SWITCH_STANDARD_APP(queue_music_function)
 
 		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", globals.qurl,profile);
 
-		
-
 
 
 		switch_core_new_memory_pool(&pool);
@@ -857,6 +862,9 @@ SWITCH_STANDARD_APP(queue_music_function)
 				switch_channel_set_variable(channel, "ards_announcement_time", argv[3]);
 
 
+				switch_safe_free(mydata);
+
+
 			}
 
 
@@ -899,13 +907,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 
 	ards_moh_step moh_step = ARDS_PRE_MOH;
-
 	int time_a = 0;
-	
-
-		
-
-
 	switch_status_t pstatus;
 
 
@@ -923,6 +925,8 @@ SWITCH_STANDARD_APP(ards_function)
 	switch_separate_string(mydata, ',', argv, (sizeof(argv) / sizeof(argv[0])));
 
 	
+
+	switch_safe_free(mydata);
 
 	//const char *priority = NULL;
 	skill = switch_channel_get_variable(channel, "ards_skill");
@@ -977,6 +981,24 @@ SWITCH_STANDARD_APP(ards_function)
 	add_ards(atoi(company), atoi(tenant), skill, uuid);
 
 	if (firstannouncement){
+
+		char music_path[1000];
+		switch_snprintf(music_path, sizeof(music_path), "%s/%s/firstannouncement.wav", globals.durl, firstannouncement);
+		firstannouncement = music_path;
+	}
+
+	if (announcement){
+
+		char music_path[1000];
+		switch_snprintf(music_path, sizeof(music_path), "%s/%s/announcement.wav", globals.durl, announcement);
+		announcement = music_path;
+	}
+
+
+
+
+
+	if (firstannouncement){
 		moh_step = ARDS_PRE_MOH;
 
 	}
@@ -993,8 +1015,17 @@ SWITCH_STANDARD_APP(ards_function)
 		if (time_a > 0){
 
 			char music_path[1000];
+			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}%s/%s/music.wav", time_a, globals.durl, tmp);
+			tmp = music_path;
+
+			/*
+
+			char music_path[1000];
 			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}file_string://%s", time_a, tmp);
 			tmp = music_path;
+
+
+			*/
 		}
 	}
 
@@ -1100,6 +1131,9 @@ SWITCH_STANDARD_APP(ards_function)
 		//Inform_ards(ARDS_REMOVE, "TEST", "TEST");
 
 	}
+
+
+	
 
 
 	return;
@@ -1615,10 +1649,12 @@ SWITCH_STANDARD_API(ards_route_function)
 		}
 
 		cJSON_Delete(cj);
+		
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	}
 
+	switch_safe_free(mydata);
 
 	return SWITCH_STATUS_SUCCESS;
 }
