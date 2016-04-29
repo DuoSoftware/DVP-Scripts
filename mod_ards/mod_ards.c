@@ -983,14 +983,14 @@ SWITCH_STANDARD_APP(ards_function)
 	if (firstannouncement){
 
 		char music_path[1000];
-		switch_snprintf(music_path, sizeof(music_path), "%s/%s/firstannouncement.wav", globals.durl, firstannouncement);
+		switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s", globals.durl, tenant, company,firstannouncement);
 		firstannouncement = music_path;
 	}
 
 	if (announcement){
 
 		char music_path[1000];
-		switch_snprintf(music_path, sizeof(music_path), "%s/%s/announcement.wav", globals.durl, announcement);
+		switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s", globals.durl, tenant, company,announcement );
 		announcement = music_path;
 	}
 
@@ -1015,7 +1015,7 @@ SWITCH_STANDARD_APP(ards_function)
 		if (time_a > 0){
 
 			char music_path[1000];
-			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}%s/%s/music.wav", time_a, globals.durl, tmp);
+			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company,tmp);
 			tmp = music_path;
 
 			/*
