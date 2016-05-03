@@ -373,7 +373,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	if (!zstr(skill) && (mycmd = strdup(skill))) {
 		argc = switch_split(mycmd, ',', argv);
 
-		switch_safe_free(mycmd);
+		
 	}
 
 
@@ -514,6 +514,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	switch_safe_free(com);
 	switch_safe_free(ten);
+	switch_safe_free(mycmd);
 	
 
 
