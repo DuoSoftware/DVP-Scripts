@@ -53,6 +53,7 @@ static struct {
 	char *recordPath;
 	switch_mutex_t *mutex;
 	switch_memory_pool_t *pool;
+	char *rurl;
 } globals;
 
 
@@ -167,6 +168,10 @@ static switch_status_t load_config(void)
 			else if (!strcasecmp(var, "upload-url")) {
 				globals.uurl = strdup(val);
 			}
+			else if (!strcasecmp(var, "recording-url")) {
+				globals.rurl = strdup(val);
+			}
+
 			else if (!strcasecmp(var, "download-url")) {
 				globals.durl = strdup(val);
 			}
@@ -1319,28 +1324,43 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
-			
-			if (globals.recordPath) {
-				char *expanded = switch_channel_expand_variables(member_channel, globals.recordPath);
-				switch_channel_set_variable(member_channel, "ards_record_file", expanded);
-				switch_ivr_record_session(member_session, expanded, 0, NULL);
-				if (expanded != globals.recordPath) {
-					switch_safe_free(expanded);
-				}
+			if (!globals.rurl){
+				if (globals.recordPath) {
+					char *expanded = switch_channel_expand_variables(member_channel, globals.recordPath);
+					switch_channel_set_variable(member_channel, "ards_record_file", expanded);
 
-				////////////////////////////////////////upload end of the session////////////////////////////////////////////
-				
-
-				if (globals.uurl){
-					char uploaddata[1000];
-					switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s", globals.uurl,h->tenant,h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid);
-					expandedx = switch_channel_expand_variables(member_channel, uploaddata);
-					switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
-
-					if (expandedx != uploaddata){
-						switch_safe_free(expandedx);
+					switch_ivr_record_session(member_session, expanded, 0, NULL);
+					if (expanded != globals.recordPath) {
+						switch_safe_free(expanded);
 					}
+
+					////////////////////////////////////////upload end of the session////////////////////////////////////////////
+
+
+					if (globals.uurl){
+						char uploaddata[1000];
+						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid);
+						expandedx = switch_channel_expand_variables(member_channel, uploaddata);
+						switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
+
+						if (expandedx != uploaddata){
+							switch_safe_free(expandedx);
+						}
+					}
+
 				}
+			}
+			else{
+
+
+
+				//////////////////////////////////////////////test webupload ////////////////////////////////////
+				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
+				char uploaddata[1000];
+				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(class=CALLSERVER,type=CALL,category=CONVERSATION,referenceid=%s)%s/%s/%s", h->member_uuid, globals.rurl, h->tenant, h->company);
+				switch_ivr_record_session(member_session, uploaddata, 0, NULL);
+				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 			}
 			
