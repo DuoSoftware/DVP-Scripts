@@ -1357,7 +1357,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				//////////////////////////////////////////////test webupload ////////////////////////////////////
 				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
 				char uploaddata[1000];
-				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(class=CALLSERVER,type=CALL,category=CONVERSATION,referenceid=%s)%s/%s/%s", h->member_uuid, globals.rurl, h->tenant, h->company);
+				switch_snprintf(uploaddata, sizeof(uploaddata), "http://%s/%s/%s?class=CALLSERVER,type=CALL,category=CONVERSATION,referenceid=%s", globals.rurl, h->tenant, h->company, h->member_uuid);
 				switch_ivr_record_session(member_session, uploaddata, 0, NULL);
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
