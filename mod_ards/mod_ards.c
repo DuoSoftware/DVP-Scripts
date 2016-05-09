@@ -1267,7 +1267,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		
 		if (!strcasecmp(h->originate_type,"PRIVATE")){
 
-			char *ctx = switch_mprintf("user/%s@%s", h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{memberuuid=%s}user/%s@%s",h->member_uuid , h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 		}
