@@ -119,6 +119,16 @@ typedef enum {
 	ARDS_MOH_ANNOUNCEMENT = 2
 } ards_moh_step;
 
+
+switch_time_t local_epoch_time_now(switch_time_t *t)
+{
+	switch_time_t now = switch_micro_time_now() / 1000000; /* APR_USEC_PER_SEC */
+	if (t) {
+		*t = now;
+	}
+	return now;
+}
+
 static switch_status_t ards_on_dtmf(switch_core_session_t *session, void *input, switch_input_type_t itype, void *buf, unsigned int buflen)
 {
 	switch (itype) {
@@ -511,10 +521,14 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
+		switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
 		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 		switch_event_fire(&event);
 	}
+
+
+
 
 
 	switch_safe_free(com);
@@ -986,6 +1000,11 @@ SWITCH_STANDARD_APP(ards_function)
 
 	add_ards(atoi(company), atoi(tenant), skill, uuid);
 
+
+
+
+	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+
 	if (firstannouncement){
 
 		char music_path[1000];
@@ -1102,11 +1121,9 @@ SWITCH_STANDARD_APP(ards_function)
 	if (!switch_channel_up(channel)){
 
 		switch_core_session_hupall_matching_var("ards_client_uuid", uuid, SWITCH_CAUSE_ORIGINATOR_CANCEL);
-
 		Inform_ards(ARDS_RING_REJECTED, uuid, "reject", atoi(company), atoi(tenant));
-
+		switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 		
-
 		
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
@@ -1114,6 +1131,7 @@ SWITCH_STANDARD_APP(ards_function)
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
@@ -1123,13 +1141,15 @@ SWITCH_STANDARD_APP(ards_function)
 
 		Inform_ards(ARDS_COMPLETED, uuid, "routed",atoi(company),atoi(tenant));
 
-		
+		switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+		switch_channel_set_variable_printf(channel, "ards_routed", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "routed");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
@@ -1250,6 +1270,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
@@ -1375,6 +1396,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 				switch_event_fire(&event);
@@ -1408,6 +1430,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-disconnected");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
@@ -1417,6 +1440,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			msg = switch_mprintf("agent_disconnected|%q", h->member_uuid);
 			send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
+			switch_channel_set_variable_printf(member_channel, "ards_route_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
 
 		}
@@ -1426,6 +1450,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				Inform_ards(ARDS_REJECTED, h->member_uuid, switch_channel_cause2str(cause), atoi(h->company), atoi(h->tenant));
 				switch_channel_set_variable(member_channel, "ards_agent_found", NULL);
+				
 
 				if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
@@ -1433,6 +1458,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
+					switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
@@ -1453,6 +1479,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	else{
 		
 		Inform_ards(ARDS_EXPIRE, h->member_uuid, "nosession", atoi(h->company), atoi(h->tenant));
+
 
 	}
 
