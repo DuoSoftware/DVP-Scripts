@@ -1198,6 +1198,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
+		/*
 		switch_bind_flag_t bind_flags = 0;
 		int kval = switch_dtmftoi("3");
 		bind_flags |= SBF_DIAL_BLEG;
@@ -1207,6 +1208,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 		}
+
+		*/
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1342,6 +1345,24 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			switch_channel_t *member_channel = switch_core_session_get_channel(member_session);
 			switch_channel_t *agent_channel = switch_core_session_get_channel(agent_session);
+
+			
+
+			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
+			switch_bind_flag_t bind_flags = 0;
+			int kval = switch_dtmftoi("3");
+			bind_flags |= SBF_DIAL_BLEG;
+
+
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
+			if (switch_ivr_bind_dtmf_meta_session(agent_channel, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
+			}
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
