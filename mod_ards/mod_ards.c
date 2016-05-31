@@ -1190,7 +1190,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_bind_flag_t bind_flags = 0;
 	switch_core_session_t *member_session;
 	int kval = switch_dtmftoi("3");
-	bind_flags |= SBF_DIAL_BLEG;
+	bind_flags |= SBF_DIAL_ALEG;
 
 
 
@@ -1423,7 +1423,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, , "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
