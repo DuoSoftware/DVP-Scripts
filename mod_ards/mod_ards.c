@@ -1185,6 +1185,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_event_t *event;
 	char *expandedx;
 	char* msg;
+	char* ardsfeatures;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
@@ -1423,8 +1424,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 
+			ardsfeatures = switch_mprintf("execute_extension::att_xfer XML ARDSFeatures|%q|%q", tenant, company);
+
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
