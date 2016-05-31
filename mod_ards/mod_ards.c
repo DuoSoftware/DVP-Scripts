@@ -1187,6 +1187,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char* msg;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
+	switch_bind_flag_t bind_flags = 0;
+	int kval = switch_dtmftoi("3");
+	bind_flags |= SBF_DIAL_BLEG;
+
 
 
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
@@ -1349,14 +1353,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			
 
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
-			switch_bind_flag_t bind_flags = 0;
-			int kval = switch_dtmftoi("3");
-			bind_flags |= SBF_DIAL_BLEG;
-
+			
 
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_channel, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
