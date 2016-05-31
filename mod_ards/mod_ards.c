@@ -1188,6 +1188,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
+	switch_core_session_t *member_session;
 	int kval = switch_dtmftoi("3");
 	bind_flags |= SBF_DIAL_BLEG;
 
@@ -1195,8 +1196,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
 
-	switch_core_session_t *member_session = switch_core_session_locate(h->member_uuid);
 	
+	member_session = switch_core_session_locate(h->member_uuid);
 
 	if (member_session) {
 
