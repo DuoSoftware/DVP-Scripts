@@ -1353,18 +1353,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			
 
-			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
 			
-
-
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
-
-				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
-			}
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
@@ -1428,6 +1417,19 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			msg = switch_mprintf("agent_connected|%q", h->member_uuid);
 
 			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
+
+
+			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
+
+
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
+			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
+			}
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
