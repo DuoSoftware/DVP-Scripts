@@ -1234,7 +1234,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 		switch_channel_set_variable(member_channel, "ards_agent_found", "true");
-
+		switch_channel_set_variable(member_channel, "ards_skill_display", h->skills);
 
 		skill = switch_channel_get_variable(member_channel, "ards_skill");
 		caller_name = switch_channel_get_variable(member_channel, "caller_id_name");
