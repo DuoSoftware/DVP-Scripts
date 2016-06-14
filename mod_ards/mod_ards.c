@@ -81,6 +81,7 @@ struct call_helper {
 	const char *company;
 	const char *tenant;
 	const char *resource_id;
+	const char *resource_name;
 	const char *servertype;
 	const char *requesttype;
 	const char *skills;
@@ -1263,6 +1264,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_servertype", "%s", h->servertype);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_requesttype", "%s", h->requesttype);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_id", "%s", h->resource_id);
+		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_name", "%s", h->resource_name);
 		switch_channel_process_export(member_channel, NULL, ovars, "ards_export_vars");
 
 		
@@ -1277,6 +1279,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Caller-Name", caller_name);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Calling-Number", calling_number);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
+			//switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_name", "%s", h->resource_name);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
 			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
@@ -1289,7 +1293,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q", h->member_uuid, skill, caller_number, caller_name, calling_number, h->skills);
 
-		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->resource_id, msg);
+		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->resource_name, msg);
 
 		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
 
@@ -1407,6 +1411,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-connected");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
 				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
@@ -1417,7 +1422,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			msg = switch_mprintf("agent_connected|%q", h->member_uuid);
 
-			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
+			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_name, msg);
 
 
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
@@ -1458,6 +1463,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-disconnected");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
 				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
@@ -1467,7 +1473,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			}
 
 			msg = switch_mprintf("agent_disconnected|%q", h->member_uuid);
-			send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
+			send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_name, msg);
 			switch_channel_set_variable_printf(member_channel, "ards_route_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
 
@@ -1485,6 +1491,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "agent-rejected");
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
 					switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
@@ -1496,7 +1503,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 				msg = switch_mprintf("agent_rejected|%q", h->member_uuid);
-				send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_id, msg);
+				send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_name, msg);
 
 
 			}
@@ -1665,8 +1672,17 @@ SWITCH_STANDARD_API(ards_route_function)
 
 						}
 
+
+						else if (!strcasecmp(namex, "ResourceName")) {
+
+							char *valuex = cjr->valuestring;
+
+							h->resource_name = switch_core_strdup(h->pool, valuex);
+
+						}
+
 					}
-					
+				
 				}
 			}
 		}
@@ -1705,7 +1721,7 @@ SWITCH_STANDARD_API(ards_route_function)
 
 		
 
-		if (!zstr(h->resource_id) && !zstr(h->member_uuid) && !zstr(h->servertype) && !zstr(h->requesttype) && !zstr(h->company) && !zstr(h->tenant) && !zstr(h->originate_domain) && !zstr(h->originate_user) && !zstr(h->originate_type)){
+		if (!zstr(h->resource_name) &&  !zstr(h->resource_id) && !zstr(h->member_uuid) && !zstr(h->servertype) && !zstr(h->requesttype) && !zstr(h->company) && !zstr(h->tenant) && !zstr(h->originate_domain) && !zstr(h->originate_user) && !zstr(h->originate_type)){
 
 
 			switch_threadattr_create(&thd_attr, h->pool);
