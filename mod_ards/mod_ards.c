@@ -88,6 +88,7 @@ struct call_helper {
 	const char *originate_type;
 	const char *originate_domain;
 	const char *originate_user;
+	const char *profile_name;
 
 
 	switch_memory_pool_t *pool;
@@ -1293,7 +1294,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q", h->member_uuid, skill, caller_number, caller_name, calling_number, h->skills);
 
-		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->resource_name, msg);
+		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 
 		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
 
@@ -1422,7 +1423,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			msg = switch_mprintf("agent_connected|%q", h->member_uuid);
 
-			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_name, msg);
+			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 
 
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
@@ -1473,7 +1474,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			}
 
 			msg = switch_mprintf("agent_disconnected|%q", h->member_uuid);
-			send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_name, msg);
+			send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 			switch_channel_set_variable_printf(member_channel, "ards_route_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
 
@@ -1503,7 +1504,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 				msg = switch_mprintf("agent_rejected|%q", h->member_uuid);
-				send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->resource_name, msg);
+				send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 
 
 			}
@@ -1678,6 +1679,15 @@ SWITCH_STANDARD_API(ards_route_function)
 							char *valuex = cjr->valuestring;
 
 							h->resource_name = switch_core_strdup(h->pool, valuex);
+
+						}
+
+
+						else if (!strcasecmp(namex, "Profile")) {
+
+							char *valuex = cjr->valuestring;
+
+							h->profile_name = switch_core_strdup(h->pool, valuex);
 
 						}
 
