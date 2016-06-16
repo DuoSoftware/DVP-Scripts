@@ -1630,7 +1630,7 @@ SWITCH_STANDARD_API(ards_route_function)
 	
 							int valuex = cjr->valueint;
 
-							char *ctx = switch_mprintf("%d", valuex);
+							char *ctx = switch_mprintf("%s", valuex);
 							h->originate_user = switch_core_strdup(h->pool, ctx);
 							switch_safe_free(ctx);
 
