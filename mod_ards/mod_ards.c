@@ -1628,7 +1628,7 @@ SWITCH_STANDARD_API(ards_route_function)
 						if (!strcasecmp(namex, "Extention")) {
 
 	
-							int valuex = cjr->valueint;
+							int valuex = cjr->valuestring;
 
 							char *ctx = switch_mprintf("%s", valuex);
 							h->originate_user = switch_core_strdup(h->pool, ctx);
