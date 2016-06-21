@@ -1054,6 +1054,13 @@ SWITCH_STANDARD_APP(ards_function)
 
 			*/
 		}
+		else{
+
+			char music_path[1000];
+			switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s",  globals.durl, tenant, company, tmp);
+			tmp = music_path;
+
+		}
 	}
 
 	if (tmp) {
