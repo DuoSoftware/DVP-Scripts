@@ -1385,7 +1385,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 					if (globals.uurl){
 						char uploaddata[1000];
-						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid);
+						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->originate_user);
 						expandedx = switch_channel_expand_variables(member_channel, uploaddata);
 						switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
 
