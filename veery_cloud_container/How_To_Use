@@ -1,0 +1,5 @@
+copy enable.conf,params.conf and veery.sh to /usr/src/
+update params.conf with your environment values
+update enable.conf with coping you hope to deploy service names on DEPLOY line and uncomment it
+put the executable permitions to veery.sh file
+run the veery.sh as "./veery.sh"
