@@ -1195,7 +1195,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char *expandedx;
 	char* msg;
 	char* ardsfeatures;
-	char* ardsoutboundfeatures,
+	char* ardsoutboundfeatures;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
