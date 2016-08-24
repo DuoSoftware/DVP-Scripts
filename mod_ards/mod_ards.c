@@ -1301,7 +1301,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 
-		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q", h->member_uuid, skill, caller_number, caller_name, calling_number, h->skills);
+		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound", h->member_uuid, skill, caller_number, caller_name, calling_number, h->skills);
 		if (!zstr(h->profile_name))
 		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 
