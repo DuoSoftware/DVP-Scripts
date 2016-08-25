@@ -1387,7 +1387,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 					if (globals.uurl){
 						char uploaddata[1000];
-						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->originate_user);
+						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->resource_name);
 						expandedx = switch_channel_expand_variables(member_channel, uploaddata);
 						switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
 
@@ -1405,7 +1405,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				//////////////////////////////////////////////test webupload ////////////////////////////////////
 				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
 				char uploaddata[1000];
-				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(file=%s.mp3)%s/%s/%s?class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&mediatype=audio&filetype=mp3&sessionid=%s&display=%s-%s", h->member_uuid, globals.rurl, h->tenant, h->company, h->member_uuid, h->member_uuid,caller_number,h->originate_user);
+				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(file=%s.mp3)%s/%s/%s?class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&mediatype=audio&filetype=mp3&sessionid=%s&display=%s-%s", h->member_uuid, globals.rurl, h->tenant, h->company, h->member_uuid, h->member_uuid,caller_number,h->resource_name);
 				switch_ivr_record_session(member_session, uploaddata, 0, NULL);
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
