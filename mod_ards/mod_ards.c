@@ -1433,7 +1433,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			msg = switch_mprintf("agent_connected|%q", h->member_uuid);
 			if (!zstr(h->profile_name))
 			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
-
+			switch_channel_set_variable(member_channel, "ARDS-Resource-Id", h->resource_id);
+			switch_channel_set_variable(member_channel, "ARDS-Resource-Name", h->resource_name);
 
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
 
