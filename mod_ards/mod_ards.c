@@ -88,6 +88,7 @@ struct call_helper {
 	const char *originate_type;
 	const char *originate_domain;
 	const char *originate_user;
+	const char *originate_display;
 	const char *profile_name;
 
 
@@ -1435,7 +1436,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Id", h->resource_id);
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Name", h->resource_name);
-			switch_channel_set_variable(member_channel, "ARDS-SIP-Name", h->originate_user);
+			switch_channel_set_variable(member_channel, "ARDS-SIP-Name", h->originate_display);
 			
 			
 
@@ -1685,7 +1686,7 @@ SWITCH_STANDARD_API(ards_route_function)
 
 							char *valuex = cjr->valuestring;
 
-							h->originate_user = switch_core_strdup(h->pool, valuex);
+							h->originate_display = switch_core_strdup(h->pool, valuex);
 
 						}
 
