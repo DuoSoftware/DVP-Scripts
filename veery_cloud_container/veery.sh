@@ -509,6 +509,20 @@ cd /usr/src/;
 docker run -d -t --env="NODE_CONFIG_DIR=/usr/local/src/fileservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_FILESERVICE_PORT=8812" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_COUCH_HOST=$COUCH_HOST" --env="SYS_COUCH_PORT=$COUCH_PORT" --env="VIRTUAL_HOST=fileservice.*" --env="LB_FRONTEND=fileservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8812/tcp --restart=always --name fileservice fileservice node /usr/local/src/fileservice/app.js;
 ;;
 
+   "cdrgenerator")
+#37
+cd /usr/src/;
+if [ ! -d "DVP-CDRGenerator" ]; then
+	git clone git://github.com/DuoSoftware/DVP-CDRGenerator.git;
+fi
+
+cd DVP-CDRGenerator;
+docker build -t "cdrgenerator:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/cdrgenerator/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CDRGENERATOR_PORT=8859" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="VIRTUAL_HOST=cdrgenerator.*" --env="LB_FRONTEND=cdrgenerator.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8859/tcp --restart=always --name cdrgenerator cdrgenerator node /usr/local/src/cdrgenerator/app.js;
+
+;;
+
 esac
 done
 
