@@ -1,13 +1,13 @@
 #!/bin/bash
 MONTHS=10;
-SRC_DIR="/usr/recordings";
-DST_DIR="/home/dasun/BAK";
+SRC_DIR="/path/to/recordings/directory";
+DST_DIR="/path/to/backup/directory";
 
 while [ false ]; do
  sleep 60
 #num++;
 TIME=$(date +"%H:%M");
-echo $TIME;
+#echo $TIME;
 if [ "$TIME" == "23.59" ];then
 #echo "BBBB";
 
