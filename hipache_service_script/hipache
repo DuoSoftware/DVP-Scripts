@@ -1,0 +1,119 @@
+#!/bin/sh
+set -e
+
+
+# hipache - distributed HTTP and websocket proxy
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+
+
+Start()
+{
+	PID=$(ps -ax | grep /usr/bin/nodejs)
+	SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+	SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
+	#echo $SUBSTRING2
+
+	if [ -n "$SUBSTRING2" ];then
+	    echo Already Running ...;
+		
+	else
+	    cd /usr/src/hipache/bin
+
+            nohup ./hipache &>/dev/null &
+	    echo Starting...;
+
+	fi
+
+exit;
+}
+Stop()
+{
+        PID=$(ps -ax | grep /usr/bin/nodejs)
+        SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+        SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
+        #echo $SUBSTRING2
+
+        if [ -n "$SUBSTRING2" ];then
+            echo Stoping ...;
+	    kill $SUBSTRING
+        else
+            echo Not Running ...;
+
+        fi
+
+exit;
+}
+Restart()
+{
+	PID=$(ps -ax | grep /usr/bin/nodejs)
+	SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+	SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
+	#echo $SUBSTRING2
+
+	if [ -n "$SUBSTRING2" ];then
+  	    echo stoping...;
+	    sleep 2;
+	    kill $SUBSTRING
+	fi
+	cd /usr/src/hipache/bin
+
+	nohup ./hipache &>/dev/null &
+	echo starting...;
+#
+exit;
+}
+Status()
+{
+        PID=$(ps -ax | grep /usr/bin/nodejs)
+        SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+        SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
+        #echo $SUBSTRING2
+
+        if [ -n "$SUBSTRING2" ];then
+            echo Running....;
+#           kill $SUBSTRING
+        else
+            echo Not Running ...;
+
+        fi
+
+exit;
+}
+
+
+
+case "$1" in
+        start)
+
+#       cd /usr/src/hipache/;
+# npm start;
+
+#log_end_msg $?
+Start;
+                ;;
+
+        stop)
+Stop;
+#                log_end_msg $?
+                ;;
+
+        restart)
+Restart;
+#exit;
+#                log_end_msg $?
+                ;;
+        status)
+Status;
+#                log_end_msg $?
+                ;;
+
+          *)
+                echo "Usage: service docker {start|stop|restart|status}"
+                exit 1
+                ;;
+esac
+
+
+exit 0;
+
