@@ -10,11 +10,15 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 Start()
 {
 	PID=$(ps -ax | grep /usr/bin/nodejs)
-	SUBSTRING=$(echo $PID| cut -d' ' -f 1)
-	SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
-	#echo $SUBSTRING2
+        PROCESS=$(echo $PID| cut -d' ' -f 5)
+        if [ "$PROCESS" = "/usr/bin/nodejs" ];then
+            SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+        else
+            SUBSTRING=$(echo $PID| cut -d' ' -f 7)
+        fi
 
-	if [ -n "$SUBSTRING2" ];then
+
+	if [ -n "$SUBSTRING" ];then
 	    echo Already Running ...;
 		
 	else
@@ -30,11 +34,15 @@ exit;
 Stop()
 {
         PID=$(ps -ax | grep /usr/bin/nodejs)
-        SUBSTRING=$(echo $PID| cut -d' ' -f 1)
-        SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
-        #echo $SUBSTRING2
+        PROCESS=$(echo $PID| cut -d' ' -f 5)
+        if [ "$PROCESS" = "/usr/bin/nodejs" ];then
+            SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+        else
+            SUBSTRING=$(echo $PID| cut -d' ' -f 7)
+        fi
 
-        if [ -n "$SUBSTRING2" ];then
+
+        if [ -n "$SUBSTRING" ];then
             echo Stoping ...;
 	    kill $SUBSTRING
         else
@@ -47,11 +55,14 @@ exit;
 Restart()
 {
 	PID=$(ps -ax | grep /usr/bin/nodejs)
-	SUBSTRING=$(echo $PID| cut -d' ' -f 1)
-	SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
-	#echo $SUBSTRING2
+	PROCESS=$(echo $PID| cut -d' ' -f 5)
+	if [ "$PROCESS" = "/usr/bin/nodejs" ];then
+            SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+	else
+            SUBSTRING=$(echo $PID| cut -d' ' -f 7)
+	fi
 
-	if [ -n "$SUBSTRING2" ];then
+	if [ -n "$SUBSTRING" ];then
   	    echo stoping...;
 	    sleep 2;
 	    kill $SUBSTRING
@@ -66,11 +77,15 @@ exit;
 Status()
 {
         PID=$(ps -ax | grep /usr/bin/nodejs)
-        SUBSTRING=$(echo $PID| cut -d' ' -f 1)
-        SUBSTRING2=$(echo $PID| cut -d' ' -f 9)
-        #echo $SUBSTRING2
+        PROCESS=$(echo $PID| cut -d' ' -f 5)
+        if [ "$PROCESS" = "/usr/bin/nodejs" ];then
+            SUBSTRING=$(echo $PID| cut -d' ' -f 1)
+        else
+            SUBSTRING=$(echo $PID| cut -d' ' -f 7)
+        fi
 
-        if [ -n "$SUBSTRING2" ];then
+
+        if [ -n "$SUBSTRING" ];then
             echo Running....;
 #           kill $SUBSTRING
         else
