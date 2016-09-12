@@ -1571,24 +1571,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_core_destroy_memory_pool(&h->pool);
 
 
-	////////////////////////////////////////////////////////////////////////////////////
-	
-	switch_safe_free(dialstr);
-	switch_safe_free(cid_name);
-	switch_safe_free(cid_number);
-	switch_safe_free(skill);
-	switch_safe_free(caller_name);
-	switch_safe_free(caller_number);
-	switch_safe_free(calling_number);
-	switch_safe_free(p);
-	switch_safe_free(expandedx);
-	switch_safe_free(msg);
-	switch_safe_free(ardsfeatures);
-	switch_safe_free(company);
-	switch_safe_free(tenant);
-	
-	////////////////////////////////////////////////////////////////////////////////////
-
 
 
 	return NULL;
