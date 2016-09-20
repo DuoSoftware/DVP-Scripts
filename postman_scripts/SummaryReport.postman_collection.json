@@ -1,0 +1,51 @@
+{
+	"id": "d849a698-9a46-e27a-7198-56739d13b5b9",
+	"name": "SummaryReport",
+	"description": "",
+	"order": [
+		"90f97746-659f-56fc-d4d9-b1c1ae92f1c3",
+		"6e3fc8e1-210b-c69f-504b-2f795e10d4b9"
+	],
+	"folders": [],
+	"timestamp": 1465964181366,
+	"owner": "571815",
+	"public": false,
+	"requests": [
+		{
+			"id": "6e3fc8e1-210b-c69f-504b-2f795e10d4b9",
+			"headers": "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkaW51c2hhZGNrIiwianRpIjoiYjExYzg3YjktMzYyNS00ZWE0LWFlZWMtYzE0NGEwNjZlM2I5Iiwic3ViIjoiNTZhOWU3NTlmYjA3MTkwN2EwMDAwMDAxMjVkOWU4MGI1YzdjNGY5ODQ2NmY5MjExNzk2ZWJmNDMiLCJleHAiOjE4OTM2NTQyNzEsInRlbmFudCI6MSwiY29tcGFueSI6Mywic2NvcGUiOlt7InJlc291cmNlIjoiYWxsIiwiYWN0aW9ucyI6ImFsbCJ9XSwiaWF0IjoxNDYxNjUwNjcxfQ.j4zqaDSeuYIw5fy8AkiBTglyLpjV-Cucmlp1qdq9CfA\nContent-Type: application/json\n",
+			"url": "http://resourceservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/ResourceManager/Resources/Productivity/Summary/from/2016-06-01/to/2016-06-15",
+			"preRequestScript": null,
+			"pathVariables": {},
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1466571362530,
+			"name": "GetAgentProductivitySummary",
+			"description": "",
+			"collectionId": "d849a698-9a46-e27a-7198-56739d13b5b9",
+			"responses": []
+		},
+		{
+			"id": "90f97746-659f-56fc-d4d9-b1c1ae92f1c3",
+			"headers": "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkaW51c2hhZGNrIiwianRpIjoiYjExYzg3YjktMzYyNS00ZWE0LWFlZWMtYzE0NGEwNjZlM2I5Iiwic3ViIjoiNTZhOWU3NTlmYjA3MTkwN2EwMDAwMDAxMjVkOWU4MGI1YzdjNGY5ODQ2NmY5MjExNzk2ZWJmNDMiLCJleHAiOjE4OTM2NTQyNzEsInRlbmFudCI6MSwiY29tcGFueSI6Mywic2NvcGUiOlt7InJlc291cmNlIjoiYWxsIiwiYWN0aW9ucyI6ImFsbCJ9XSwiaWF0IjoxNDYxNjUwNjcxfQ.j4zqaDSeuYIw5fy8AkiBTglyLpjV-Cucmlp1qdq9CfA\nContent-Type: application/json\n",
+			"url": "http://ardsmonitoring.104.131.67.21.xip.io/DVP/API/1.0.0.0/ARDS/MONITORING/QUEUE/Summary/from/2016-06-01/to/2016-06-15",
+			"preRequestScript": null,
+			"pathVariables": {},
+			"method": "GET",
+			"data": null,
+			"dataMode": "params",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1465973108709,
+			"name": "GetQueueSummary",
+			"description": "",
+			"collectionId": "d849a698-9a46-e27a-7198-56739d13b5b9",
+			"responses": []
+		}
+	]
+}

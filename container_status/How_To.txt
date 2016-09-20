@@ -1,0 +1,13 @@
+#there were three files called docker_status.sh,docker_stats.sh and host.conf
+#
+#host.conf file has parameters which we use to connect to send mail server and docker stats running interval time
+#
+#docker_status.sh file is run usnig cron job
+#it send an email when containers excited on script running server
+#
+#
+#docker_status.sh file can run with loop
+# you have to put the time interval on host.conf.
+#then you run the script it will send an e mail with looping which you configered time on the host.conf
+#
+#
