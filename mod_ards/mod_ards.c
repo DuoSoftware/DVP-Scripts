@@ -1351,7 +1351,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		dialstr = switch_channel_expand_variables(member_channel, h->originate_string);
-		status = switch_ivr_originate(NULL, &agent_session, &cause, dialstr, 60, NULL, cid_name ? cid_name : h->member_cid_name, cid_number ? cid_number : h->member_cid_number, NULL, ovars, SOF_NONE, NULL);
+		status = switch_ivr_originate(NULL, &agent_session, &cause, dialstr, 25, NULL, cid_name ? cid_name : h->member_cid_name, cid_number ? cid_number : h->member_cid_number, NULL, ovars, SOF_NONE, NULL);
 		if (dialstr != h->originate_string) {
 			switch_safe_free(dialstr);
 		}
