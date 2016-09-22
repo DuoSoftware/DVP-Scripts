@@ -1313,7 +1313,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		
 		if (!strcasecmp(h->originate_type,"PRIVATE")){
 
-			char *ctx = switch_mprintf("{memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s",h->member_uuid , h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{memberuuid=%s,originate_timeout=25,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s",h->member_uuid , h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 		}
@@ -1336,7 +1336,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 		else {
 
-			char *ctx = switch_mprintf("{memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{memberuuid=%s,originate_timeout=25,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 
