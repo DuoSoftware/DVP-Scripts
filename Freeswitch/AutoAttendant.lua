@@ -45,7 +45,12 @@ length = row.ExtentionLength
 
 end
 
-destnum = session:playAndGetDigits(1,length, row.Tries, row.TimeOut, "#", row.MenuSound, "/invalid.wav", "\\S+", "my_digit")
+		
+
+fileurl = string.format("  http://fileservice.app.veery.cloud/DVP/API/1.0.0.0/InternalFileService/File/DownloadLatest/%s/%s/%s", tenant, company, row.MenuSound)
+freeswitch.consoleLog("notice", fileurl)
+		
+destnum = session:playAndGetDigits(1,length, row.Tries, row.TimeOut, "#", fileurl, "/invalid.wav", "\\S+", "my_digit")
 
 
 
