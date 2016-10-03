@@ -45,7 +45,7 @@ length = row.ExtentionLength
 
 end
 
-destnum = session:playAndGetDigits(1,length, row.Tries, 5000, "#", row.MenuSound, "/invalid.wav", "\\S+", "my_digit")
+destnum = session:playAndGetDigits(1,length, row.Tries, row.TimeOut, "#", row.MenuSound, "/invalid.wav", "\\S+", "my_digit")
 
 
 
