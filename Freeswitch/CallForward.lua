@@ -1,6 +1,6 @@
 
 --table of return cause of phone like dictionary--
---tableName["RETURN_STRING_OF_SIP_PHONE"] = "CAUSE" -- 
+--tableName["RETURN_STRING_OF_SIP_PHONE"] = "CAUSE" --
 obParam = {}
 obParam["USER_BUSY"] = "BUSY"
 obParam["NO_USER_RESPONSE"] = "BUSY"
@@ -34,19 +34,21 @@ cFCause = obParam[obCause]
         --freeswitch.consoleLog("info", "aaaaaaaaaaaaa = " ..argv[].. "\n")
 
     freeswitch.consoleLog("info", "obSession:hangupCause() = " .. obCause.."\n" )
-	freeswitch.consoleLog("info", "company = " ..company_var .. "\n")
-	freeswitch.consoleLog("info", "tenant = " ..tenant_var .. "\n")
-	freeswitch.consoleLog("info", "Origination = " ..origination_var .. "\n")
-	freeswitch.consoleLog("info", "Context = " ..contex2_var .. "\n")
-	freeswitch.consoleLog("info", "OriginationCallerIdNumber = " ..originationCallerIdNumber_var .. "\n")
-	freeswitch.consoleLog("info", "Domain  = " ..domain_var .. "\n")	
-	freeswitch.consoleLog("info", "TableVal = "..cFCause.. "\n")        
-	freeswitch.consoleLog("info", "FwdKey = "..fwdKey_var.. "\n")
-	freeswitch.consoleLog("info", "DodNumber = "..dodNumber_var.. "\n")
+        freeswitch.consoleLog("info", "company = " ..company_var .. "\n")
+        freeswitch.consoleLog("info", "tenant = " ..tenant_var .. "\n")
+        freeswitch.consoleLog("info", "Origination = " ..origination_var .. "\n")
+        freeswitch.consoleLog("info", "Context = " ..contex2_var .. "\n")
+        freeswitch.consoleLog("info", "OriginationCallerIdNumber = " ..originationCallerIdNumber_var .. "\n")
+        freeswitch.consoleLog("info", "Domain  = " ..domain_var .. "\n")
+        freeswitch.consoleLog("info", "TableVal = "..cFCause.. "\n")
+        freeswitch.consoleLog("info", "FwdKey = "..fwdKey_var.. "\n")
+        freeswitch.consoleLog("info", "DodNumber = "..dodNumber_var.. "\n")
 
 ------
 
---					fwdKey_var	  var fwdId = dnisSplitArr[1];
+
+
+--                                      fwdKey_var        var fwdId = dnisSplitArr[1];
 --                  company_var      var companyId = dnisSplitArr[2];
 --                  tenant_var     var tenantId = dnisSplitArr[3];
 --                  obCause      var disconReason = dnisSplitArr[4];
@@ -60,18 +62,20 @@ cFCause = obParam[obCause]
 -- str_var = contex_var.."/"..company_var.."/"..tenant_var.."/"..guuserid_var.."/"..cFCause.."/"..contex2_var.."/"..fromguuserid_var.."/"..domain_var.."/"..fromuser_var.."/"..fromnumber_var
 str_var = contex_var.."/"..fwdKey_var.."/"..company_var.."/"..tenant_var.."/"..cFCause.."/"..dodNumber_var.."/"..contex2_var.."/"..origination_var.."/"..originationCallerIdNumber_var
 
-	freeswitch.consoleLog("info", "Return_String = " ..str_var .. "\n")
+        freeswitch.consoleLog("info", "Return_String = " ..str_var .. "\n")
 
-    if ( cFCause == "BUSY" ) then          
-	session:transfer(str_var, "XML", contex2_var)
-	--session:transfer("5000", "XML", "default")
+    if ( cFCause == "BUSY" ) then
+        session:transfer(str_var, "XML", contex2_var)
+        --session:transfer("5000", "XML", "default")
     elseif ( cFCause == "NO_ANSWER" ) then
         session:transfer(str_var, "XML", contex2_var)
-	-- session:hangup()
-    elseif ( cFCause == "ORIGINATOR_CANCEL" ) then  
+        -- session:hangup()
+    elseif ( cFCause == "ORIGINATOR_CANCEL" ) then
         session:transfer(str_var, "XML", contex2_var)
     else
-	session:hangup()
+        session:hangup()
     end
+
+
 
 
