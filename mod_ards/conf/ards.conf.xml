@@ -3,22 +3,12 @@
   <settings>
     <param name="url" value="http://ardsliteservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/ARDS/request"/>
     <param name="register-url" value="http://ardsliteservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/ARDS/requestserver"/>
-    <param name="xml_rpc" value="http://159.203.160.47:8080/api/ards_route"/>
-
-
+    <param name="xml_rpc" value="http://159.203.160.47:8080/api"/>
     <param name="security_token" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdWtpdGhhIiwianRpIjoiMTdmZTE4M2QtM2QyNC00NjQwLTg1NTgtNWFkNGQ5YzVlMzE1Iiwic3ViIjoiNTZhOWU3NTlmYjA3MTkwN2EwMDAwMDAxMjVkOWU4MGI1YzdjNGY5ODQ2NmY5MjExNzk2ZWJmNDMiLCJleHAiOjE4OTMzMDI3NTMsInRlbmFudCI6LTEsImNvbXBhbnkiOi0xLCJzY29wZSI6W3sicmVzb3VyY2UiOiJhbGwiLCJhY3Rpb25zIjoiYWxsIn1dLCJpYXQiOjE0NjEyOTkxNTN9.YiocvxO_cVDzH5r67-ulcDdBkjjJJDir2AeSe3jGYeA"/>
-
     <param name="profile-url" value="http://queuemusic.104.131.67.21.xip.io/DVP/API/1.0.0/QueueMusic/plain/Profile"/>
     <param name="upload-url" value="http://fileservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/FileService/File/Upload"/>
-
-<param name="download-url" value="http://162.243.81.39:8888/DVP/API/1.0.0.0/FileService/File/Download"/>
-
-
-<param name="notification_url" value="http://notificationservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/NotificationService/Notification/initiate"/>
-
-
-
-
+    <param name="download-url" value="http://162.243.81.39:8888/DVP/API/1.0.0.0/FileService/File/Download"/>
+    <param name="notification_url" value="http://notificationservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/NotificationService/Notification/initiate"/>
     <param name="record-format" value="$${base_dir}/recordings/sales/${strftime(%Y-%m-%d-%H-%M-%S)}.${destination_number}.${caller_id_number}.${uuid}.wav"/>
 
     <!--param name="dbname" value="/dev/shm/callcenter.db"/-->

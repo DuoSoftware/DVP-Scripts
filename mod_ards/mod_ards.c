@@ -36,7 +36,6 @@
 #define ARDS_EVENT "ards::info"
 
 
-
 static struct {
 	switch_hash_t *ards_hash;
 	int debug;
@@ -675,6 +674,7 @@ static void register_ards(int company, int tenant){
 	//char tmpurl[1000];
 	char msg[1000];
 	char callback[1000];
+	char queue_position_url[1000];
 
 	char *p = "{}";
 
@@ -693,7 +693,9 @@ static void register_ards(int company, int tenant){
 
 
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/add", registerurl);
-	switch_snprintf(callback, sizeof(callback), globals.rpc_url);
+	switch_snprintf(callback, sizeof(callback), "%s/ards_route", globals.rpc_url);
+	switch_snprintf(queue_position_url, sizeof(queue_position_url), "%s/ards_position", globals.rpc_url);
+	
 
 	/*
 
@@ -709,11 +711,6 @@ static void register_ards(int company, int tenant){
 
 	switch_snprintf(msg, sizeof(msg), "%d|%d|CALLSERVER|ARDS|CALL|%s|%d", company, tenant, callback, 1);
 
-
-
-
-
-
 	
 	jdata = cJSON_CreateObject();
 	cJSON_AddNumberToObject(jdata, "Company", company);
@@ -722,6 +719,8 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
 	cJSON_AddStringToObject(jdata, "CallbackUrl", callback);
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
+	cJSON_AddBoolToObject(jdata, "ReceiveQueuePosition", true);
+	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
 	cJSON_AddNumberToObject(jdata, "ServerID", 1);
 	p = cJSON_Print(jdata);
 	
@@ -1576,6 +1575,79 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	return NULL;
 }
 
+
+
+SWITCH_STANDARD_API(ards_position_function){
+	
+	
+	char *mydata = NULL;
+	char *session = NULL;
+	char *queue = NULL;
+	int position = -1;
+	
+
+	cJSON *cj, *cjp;
+	
+	if (!globals.running) {
+		return SWITCH_STATUS_FALSE;
+	}
+	if (zstr(cmd)) {
+		stream->write_function(stream, "-USAGE: \n%s\n", "[<uuid>|<url>|<company>|<tenant>|<class>|<type>|<category>]");
+		return SWITCH_STATUS_SUCCESS;
+	}
+	
+	mydata = strdup(cmd);
+	switch_assert(mydata);
+	
+	
+	
+	//{SessionId: item, QueueId: queueId, QueuePosition: i+1};
+	
+	for (cjp = cj->child; cjp; cjp = cjp->next) {
+			char *name = cjp->string;
+			//char *value = cjp->valuestring;
+
+			if (name) {
+				if (!strcasecmp(name, "SessionId")) {
+
+					 switch_strdup(session, value);
+
+				}
+				else if (!strcasecmp(name, "QueueId")) {
+
+					switch_strdup(queue, value);
+				}
+
+				else if (!strcasecmp(name, "QueuePosition")) {
+
+					position = switch_core_strdup(h->pool, value);
+				}
+			
+			}
+	}
+	switch_channel_t *channel = switch_core_session_get_channel(session);
+	
+	while (switch_channel_ready(channel)) {
+		switch_status_t pstatus = switch_ivr_phrase_macro(session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
+		switch_channel_flush_dtmf(channel);
+		
+		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
+			break;
+		}
+	}
+	
+	cJSON_Delete(cj);
+	
+	switch_safe_free(mydata);
+	switch_safe_free(session);
+	switch_safe_free(queue);
+
+	 
+	return SWITCH_STATUS_SUCCESS;
+
+	
+}
+
 SWITCH_STANDARD_API(ards_route_function)
 {
 	
@@ -1839,6 +1911,9 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 	SWITCH_ADD_APP(app_interface, "ards", "ards", "ardscc", ards_function, "queue", SAF_NONE);
 	SWITCH_ADD_APP(app_interface, "ards_profile", "ards_profile", "ardscc_profilr", queue_music_function, "queue_music", SAF_NONE);
 	SWITCH_ADD_API(api_interface, "ards_route", "Route to agent", ards_route_function, "[<uuid>,<url>,<company>,<tenant>,<class>,<type>,<category>]");
+	SWITCH_ADD_API(api_interface, "ards_position", "Agent position", ards_position_function, "[<uuid>,<url>,<company>,<tenant>,<class>,<type>,<category>]");
+	
+	
 	SWITCH_ADD_API(api_interface, "ards_url_test", "Test ards url", ards_url_test, "");
 	
 
