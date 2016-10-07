@@ -719,7 +719,7 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
 	cJSON_AddStringToObject(jdata, "CallbackUrl", callback);
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
-	cJSON_AddBoolToObject(jdata, "ReceiveQueuePosition", 1);
+	cJSON_AddNumberToObject(jdata, "ReceiveQueuePosition", 1);
 	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
 	cJSON_AddNumberToObject(jdata, "ServerID", 1);
 	p = cJSON_Print(jdata);
@@ -1581,7 +1581,7 @@ SWITCH_STANDARD_API(ards_position_function){
 	
 	
 	char *mydata = NULL;
-	switch_core_session_t *session = NULL;
+	switch_core_session_t *member_session = NULL;
 	char *sessionid = NULL;
 	char *queue = NULL;
 	int position = -1;
@@ -1628,10 +1628,12 @@ SWITCH_STANDARD_API(ards_position_function){
 			
 			}
 	}
+	
+	member_session = switch_core_session_locate(sessionid);
 	channel = switch_core_session_get_channel(session);
 	
 	while (switch_channel_ready(channel)) {
-		pstatus = switch_ivr_phrase_macro(session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
+		pstatus = switch_ivr_phrase_macro(member_session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
 		switch_channel_flush_dtmf(channel);
 		
 		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
@@ -1642,7 +1644,7 @@ SWITCH_STANDARD_API(ards_position_function){
 	cJSON_Delete(cj);
 	
 	switch_safe_free(mydata);
-	switch_safe_free(session);
+	switch_safe_free(member_session);
 	switch_safe_free(queue);
 
 	 
