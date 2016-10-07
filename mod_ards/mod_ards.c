@@ -1625,7 +1625,7 @@ SWITCH_STANDARD_API(ards_position_function){
 					else if (!strcasecmp(name, "QueuePosition")) {
 
 					
-						switch_strdup(queue, cjp->position);
+						switch_strdup(queue, cjp->valuestring);
 					}
 				
 				}
