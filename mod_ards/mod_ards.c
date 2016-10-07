@@ -1584,7 +1584,8 @@ SWITCH_STANDARD_API(ards_position_function){
 	switch_core_session_t *member_session = NULL;
 	char *sessionid = NULL;
 	char *queue = NULL;
-	int position = -1;
+	char *position = NULL;
+	//int position = -1;
 	switch_status_t pstatus;
 	switch_channel_t *channel = NULL;
 	
@@ -1623,7 +1624,8 @@ SWITCH_STANDARD_API(ards_position_function){
 
 					else if (!strcasecmp(name, "QueuePosition")) {
 
-						position = cjp->valueint;
+					
+						switch_strdup(queue, cjp->position);
 					}
 				
 				}
