@@ -34,7 +34,7 @@
 #include <switch_curl.h>
 
 #define ARDS_EVENT "ards::info"
-
+#define VM_MESSAGE_COUNT_MACRO "voicemail_message_count"
 
 static struct {
 	switch_hash_t *ards_hash;
@@ -1605,39 +1605,41 @@ SWITCH_STANDARD_API(ards_position_function){
 	
 	
 	//{SessionId: item, QueueId: queueId, QueuePosition: i+1};
-	
-	for (cjp = cj->child; cjp; cjp = cjp->next) {
-			char *name = cjp->string;
-			//char *value = cjp->valuestring;
+	if ((cj = cJSON_Parse(mydata)) ) {
+		for (cjp = cj->child; cjp; cjp = cjp->next) {
+				char *name = cjp->string;
+				//char *value = cjp->valuestring;
 
-			if (name) {
-				if (!strcasecmp(name, "SessionId")) {
+				if (name) {
+					if (!strcasecmp(name, "SessionId")) {
 
-					 switch_strdup(sessionid, cjp->valuestring);
+						 switch_strdup(sessionid, cjp->valuestring);
 
+					}
+					else if (!strcasecmp(name, "QueueId")) {
+
+						switch_strdup(queue, cjp->valuestring);
+					}
+
+					else if (!strcasecmp(name, "QueuePosition")) {
+
+						position = cjp->valueint;
+					}
+				
 				}
-				else if (!strcasecmp(name, "QueueId")) {
-
-					switch_strdup(queue, cjp->valuestring);
-				}
-
-				else if (!strcasecmp(name, "QueuePosition")) {
-
-					position = cjp->valueint;
-				}
-			
-			}
-	}
-	
-	member_session = switch_core_session_locate(sessionid);
-	channel = switch_core_session_get_channel(session);
-	
-	while (switch_channel_ready(channel)) {
-		//pstatus = switch_ivr_phrase_macro(member_session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
-		switch_channel_flush_dtmf(channel);
+		}
 		
-		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
-			break;
+		
+		member_session = switch_core_session_locate(sessionid);
+		channel = switch_core_session_get_channel(session);
+		
+		while (switch_channel_ready(channel)) {
+			pstatus = switch_ivr_phrase_macro(member_session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
+			switch_channel_flush_dtmf(channel);
+			
+			if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
+				break;
+			}
 		}
 	}
 	
