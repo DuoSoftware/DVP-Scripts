@@ -1623,7 +1623,7 @@ SWITCH_STANDARD_API(ards_position_function){
 
 				else if (!strcasecmp(name, "QueuePosition")) {
 
-					position = jp->valueint;
+					position = cjp->valueint;
 				}
 			
 			}
