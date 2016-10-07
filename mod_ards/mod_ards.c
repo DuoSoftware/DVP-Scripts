@@ -719,7 +719,7 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
 	cJSON_AddStringToObject(jdata, "CallbackUrl", callback);
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
-	cJSON_AddBoolToObject(jdata, "ReceiveQueuePosition", true);
+	cJSON_AddBoolToObject(jdata, "ReceiveQueuePosition", 1);
 	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
 	cJSON_AddNumberToObject(jdata, "ServerID", 1);
 	p = cJSON_Print(jdata);
@@ -1581,7 +1581,8 @@ SWITCH_STANDARD_API(ards_position_function){
 	
 	
 	char *mydata = NULL;
-	char *session = NULL;
+	switch_core_session_t *session = NULL;
+	char *sessionid = NULL;
 	char *queue = NULL;
 	int position = -1;
 	
@@ -1610,7 +1611,7 @@ SWITCH_STANDARD_API(ards_position_function){
 			if (name) {
 				if (!strcasecmp(name, "SessionId")) {
 
-					 switch_strdup(session, value);
+					 switch_strdup(sessionid, value);
 
 				}
 				else if (!strcasecmp(name, "QueueId")) {
