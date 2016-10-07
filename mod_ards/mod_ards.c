@@ -1623,7 +1623,7 @@ SWITCH_STANDARD_API(ards_position_function){
 
 				else if (!strcasecmp(name, "QueuePosition")) {
 
-					position = switch_core_strdup(position, cjp->valueint);
+					position = jp->valueint;
 				}
 			
 			}
@@ -1633,7 +1633,7 @@ SWITCH_STANDARD_API(ards_position_function){
 	channel = switch_core_session_get_channel(session);
 	
 	while (switch_channel_ready(channel)) {
-		pstatus = switch_ivr_phrase_macro(member_session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
+		//pstatus = switch_ivr_phrase_macro(member_session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
 		switch_channel_flush_dtmf(channel);
 		
 		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
