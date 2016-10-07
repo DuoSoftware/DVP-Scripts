@@ -1613,17 +1613,17 @@ SWITCH_STANDARD_API(ards_position_function){
 			if (name) {
 				if (!strcasecmp(name, "SessionId")) {
 
-					 switch_strdup(sessionid, value);
+					 switch_strdup(sessionid, cjp->valuestring);
 
 				}
 				else if (!strcasecmp(name, "QueueId")) {
 
-					switch_strdup(queue, value);
+					switch_strdup(queue, cjp->valuestring);
 				}
 
 				else if (!strcasecmp(name, "QueuePosition")) {
 
-					position = switch_core_strdup(h->pool, value);
+					position = switch_core_strdup(position, cjp->valueint);
 				}
 			
 			}
