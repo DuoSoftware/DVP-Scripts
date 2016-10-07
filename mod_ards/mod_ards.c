@@ -1585,6 +1585,8 @@ SWITCH_STANDARD_API(ards_position_function){
 	char *sessionid = NULL;
 	char *queue = NULL;
 	int position = -1;
+	switch_status_t pstatus;
+	switch_channel_t *channel = NULL;
 	
 
 	cJSON *cj, *cjp;
@@ -1626,10 +1628,10 @@ SWITCH_STANDARD_API(ards_position_function){
 			
 			}
 	}
-	switch_channel_t *channel = switch_core_session_get_channel(session);
+	channel = switch_core_session_get_channel(session);
 	
 	while (switch_channel_ready(channel)) {
-		switch_status_t pstatus = switch_ivr_phrase_macro(session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
+		pstatus = switch_ivr_phrase_macro(session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
 		switch_channel_flush_dtmf(channel);
 		
 		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
