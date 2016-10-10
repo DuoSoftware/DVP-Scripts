@@ -1039,16 +1039,6 @@ SWITCH_STANDARD_APP(ards_function)
 		announcement = music_path;
 	}
 
-	/*
-	if (!strcasecmp(position_announcement, "true") && position){
-
-		char music_path[1000];
-		switch_snprintf(music_path, sizeof(music_path), "phrase:queue_position:%s", position);
-		position = music_path;
-	}
-	*/
-
-
 
 
 
@@ -1075,15 +1065,6 @@ SWITCH_STANDARD_APP(ards_function)
 			char music_path[1000];
 			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company,tmp);
 			tmp = music_path;
-
-			/*
-
-			char music_path[1000];
-			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}file_string://%s", time_a, tmp);
-			tmp = music_path;
-
-
-			*/
 		}
 		else{
 
