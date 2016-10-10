@@ -1109,6 +1109,7 @@ SWITCH_STANDARD_APP(ards_function)
 		}
 		else if (moh_step == ARDS_POSITION_ANNOUNCEMENT || moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT){
 			
+			position = switch_channel_get_variable(channel, "ards_queue_position");
 			char music_path[1000];
 			switch_snprintf(music_path, sizeof(music_path), "phrase:queue_position:%s", position);
 			music = music_path;
@@ -1630,6 +1631,8 @@ SWITCH_STANDARD_API(ards_position_function){
 	
 
 	cJSON *cj, *cjp;
+
+
 	
 	if (!globals.running) {
 		return SWITCH_STATUS_FALSE;
@@ -1699,11 +1702,13 @@ SWITCH_STANDARD_API(ards_position_function){
 		}*/
 	}
 	
-	cJSON_Delete(cj);
+	
 	
 	switch_safe_free(mydata);
-	switch_safe_free(member_session);
+	switch_safe_free(sessionid);
 	switch_safe_free(queue);
+
+	cJSON_Delete(cj);
 
 	 
 	return SWITCH_STATUS_SUCCESS;
