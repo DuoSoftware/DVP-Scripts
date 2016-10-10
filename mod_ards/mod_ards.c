@@ -1688,7 +1688,7 @@ SWITCH_STANDARD_API(ards_position_function){
 			}
 		}
 		
-		
+		switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Possition recived  for %s and the position is %s", sessionid, position);
 		member_session = switch_core_session_locate(sessionid);
 		
 		if (member_session){
@@ -1697,10 +1697,13 @@ SWITCH_STANDARD_API(ards_position_function){
 				switch_channel_set_variable_printf(channel, "ards_queue_position", "%s", position);
 			}
 			else{
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No channel found");
 			}
 		}
 		else{
 		
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No session found");
 		}
 
 
