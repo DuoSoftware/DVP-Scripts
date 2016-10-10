@@ -514,46 +514,42 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 				}
 			}
 		}
+
+
+		http_data->http_response_code = httpRes;
+
+		switch_safe_free(http_data->stream.data);
+
+		if (pool) {
+			switch_core_destroy_memory_pool(&pool);
+		}
+
+
+
+		switch_safe_free(p);
+		cJSON_Delete(jdata);
+		jdata = NULL;
+
+
+
+
+		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
+			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+			switch_event_fire(&event);
+		}
+
+
+
+
+		cJSON_Delete(cj);
 	}
-
-
-
-
-
-
-	http_data->http_response_code = httpRes;
-
-	switch_safe_free(http_data->stream.data);
-
-	if (pool) {
-		switch_core_destroy_memory_pool(&pool);
-	}
-
-
-	
-	switch_safe_free(p);
-	cJSON_Delete(jdata);
-	jdata = NULL;
-
-
-	
-
-	if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
-		switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
-		switch_event_fire(&event);
-	}
-
-
-
-
-	cJSON_Delete(cj);
 
 	switch_safe_free(com);
 	switch_safe_free(ten);
@@ -934,11 +930,7 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *position_announcement = switch_channel_get_variable(channel, "ards_position_announcement");
 	const char *position = switch_channel_get_variable(channel, "ards_queue_position");
 	const char *position_language = switch_channel_get_variable(channel, "ards_position_language");
-	if (!position_language){
-		position_language = "en";
-	}
-
-
+	
 	ards_moh_step moh_step = ARDS_PRE_MOH;
 	int time_a = 0;
 	switch_status_t pstatus;
@@ -950,6 +942,9 @@ SWITCH_STANDARD_APP(ards_function)
 //	int argc;
 	char *mydata = NULL, *argv[5];
 	
+	if (!position_language){
+		position_language = "en";
+	}
 
 	if (announcement_time){
 		time_a = atoi(announcement_time);
@@ -1671,27 +1666,26 @@ SWITCH_STANDARD_API(ards_position_function){
 	//{SessionId: item, QueueId: queueId, QueuePosition: i+1};
 	if ((cj = cJSON_Parse(mydata)) ) {
 		for (cjp = cj->child; cjp; cjp = cjp->next) {
-				char *name = cjp->string;
-				//char *value = cjp->valuestring;
+			char *name = cjp->string;
+			char *value = cjp->valuestring;
 
-				if (name) {
-					if (!strcasecmp(name, "SessionId")) {
+			if (name && value) {
+				if (!strcasecmp(name, "SessionId")) {
 
-						 switch_strdup(sessionid, cjp->valuestring);
+					switch_strdup(sessionid, value);
 
-					}
-					else if (!strcasecmp(name, "QueueId")) {
-
-						switch_strdup(queue, cjp->valuestring);
-					}
-
-					else if (!strcasecmp(name, "QueuePosition")) {
-
-					
-						switch_strdup(position, cjp->valuestring);
-					}
-				
 				}
+				else if (!strcasecmp(name, "QueueId")) {
+
+					switch_strdup(queue, value);
+				}
+
+				else if (!strcasecmp(name, "QueuePosition")) {
+
+					switch_strdup(position, value);
+				}
+
+			}
 		}
 		
 		
@@ -1699,8 +1693,14 @@ SWITCH_STANDARD_API(ards_position_function){
 		
 		if (member_session){
 			channel = switch_core_session_get_channel(member_session);
-			if (channel)
+			if (channel){
 				switch_channel_set_variable_printf(channel, "ards_queue_position", "%s", position);
+			}
+			else{
+			}
+		}
+		else{
+		
 		}
 
 
