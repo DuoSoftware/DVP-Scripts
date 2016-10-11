@@ -918,6 +918,7 @@ SWITCH_STANDARD_APP(ards_function)
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", url, uuid);
 
 	char dbuf[10];
+	char music_file_path[1000];
 	switch_input_args_t args = { 0 };
 	switch_channel_t *channel = switch_core_session_get_channel(session);
 	char *uuid = switch_core_session_get_uuid(session);
@@ -1013,18 +1014,11 @@ SWITCH_STANDARD_APP(ards_function)
 		
 	}
 
-
 	add_ards(atoi(company), atoi(tenant), skill, uuid, channel);
-
-
-
 	position = switch_channel_get_variable(channel, "ards_queue_position");
-
-
-
-
 	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
+	/*
 	if (firstannouncement){
 
 		char music_path[1000];
@@ -1038,7 +1032,7 @@ SWITCH_STANDARD_APP(ards_function)
 		switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s", globals.durl, tenant, company,announcement );
 		announcement = music_path;
 	}
-
+	*/
 
 
 
@@ -1047,6 +1041,7 @@ SWITCH_STANDARD_APP(ards_function)
 		moh_step = ARDS_POSITION_ANNOUNCEMENT;
 	}
 	else if (firstannouncement){
+
 		moh_step = ARDS_PRE_MOH;
 
 	}
@@ -1054,6 +1049,7 @@ SWITCH_STANDARD_APP(ards_function)
 		moh_step = ARDS_MOH;
 	}
 
+	/*
 
 
 	if (!tmp) {
@@ -1078,9 +1074,11 @@ SWITCH_STANDARD_APP(ards_function)
 	if (tmp) {
 		music = tmp;
 	}
-
+	*/
 	if (!strcasecmp(music, "silence")) {
-		music = "silence_stream://-1";
+		//music = "silence_stream://-1";
+
+		switch_snprintf(music_file_path, sizeof(music_file_path), "silence_stream://-1");
 	}
 	
 
@@ -1096,30 +1094,51 @@ SWITCH_STANDARD_APP(ards_function)
 		////////////////////////////////////////////////////////////////////////////////
 		if (moh_step == ARDS_PRE_MOH){
 
-			music = firstannouncement;
+			//music = firstannouncement;
+			switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, firstannouncement);
 
 		}
 		else if (moh_step == ARDS_MOH)
 		{
-			music = tmp;
+			//music = tmp;
+			if (!tmp) {
+
+				tmp = switch_channel_get_hold_music(channel);
+				switch_snprintf(music_file_path, sizeof(music_file_path), tmp);
+			}
+			else{
+				if (time_a > 0){
+
+					//char music_path[1000];
+					switch_snprintf(music_file_path, sizeof(music_file_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company, tmp);
+					//tmp = music_path;
+				}
+				else{
+
+					//char music_path[1000];
+					switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, tmp);
+					//tmp = music_path;
+
+				}
+			}
 		}
 		else if(moh_step == ARDS_MOH_ANNOUNCEMENT)
 		{
-			music = announcement;
+			//music = announcement;
+			switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, announcement);
 		}
 		else if (moh_step == ARDS_POSITION_ANNOUNCEMENT || moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT){
 			
+			//char music_path[1000];
 			position = switch_channel_get_variable(channel, "ards_queue_position");
-			char music_path[1000];
-			switch_snprintf(music_path, sizeof(music_path), "phrase:queue_position:%s", position);
-			music = music_path;
+			switch_snprintf(music_file_path, sizeof(music_file_path), "phrase:queue_position:%s", position);
+			//music = music_path;
 		}
 
 		
 
 		///////////////////////////////////////////////////////////////////////////////
-
-			pstatus = switch_ivr_play_file(session, NULL, music, &args);
+		pstatus = switch_ivr_play_file(session, NULL, music_file_path, &args);
 		
 		
 		
