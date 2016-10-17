@@ -34,8 +34,7 @@
 #include <switch_curl.h>
 
 #define ARDS_EVENT "ards::info"
-
-
+#define VM_MESSAGE_COUNT_MACRO "voicemail_message_count"
 
 static struct {
 	switch_hash_t *ards_hash;
@@ -119,7 +118,9 @@ typedef enum {
 typedef enum {
 	ARDS_PRE_MOH = 0,
 	ARDS_MOH = 1,
-	ARDS_MOH_ANNOUNCEMENT = 2
+	ARDS_MOH_ANNOUNCEMENT = 2,
+	ARDS_POSITION_ANNOUNCEMENT = 3,
+	ARDS_REPEAT_POSITION_ANNOUNCEMENT = 4
 } ards_moh_step;
 
 
@@ -352,7 +353,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 }
 
-static void add_ards(int company, int tenant, const char* skill, const char *uuid){
+static void add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel){
 
 	const char *url = globals.url;
 	switch_memory_pool_t *pool = NULL;
@@ -369,14 +370,13 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	char msg[1000];
 	char *p = "{}";
 
+	cJSON *cj, *cjp, *cjr;
+
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
-
 	char *com = switch_mprintf("%d", company);
-
 	char *ten = switch_mprintf("%d", tenant);
-
 	const char *strings[20] = { 0 };
 
 	switch_event_t *event;
@@ -389,16 +389,12 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	int argc = 0;
 
 	if (!zstr(skill) && (mycmd = strdup(skill))) {
-		argc = switch_split(mycmd, ',', argv);
-
-		
+		argc = switch_split(mycmd, ',', argv);	
 	}
 
 
 	for (int i = 0; i < argc; i++){
-
 		strings[i] = (const char*)argv[i];
-
 	}
 
 
@@ -411,13 +407,9 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 
 	http_data->max_bytes = 64000;
 	SWITCH_STANDARD_STREAM(http_data->stream);
-
-
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/add", url);
 
 	switch_snprintf(msg, sizeof(msg), "%s|%d|%d|%s", uuid, company, tenant, skill);
-
-
 
 	
 	jdata = cJSON_CreateObject();
@@ -430,8 +422,6 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	cJSON_AddStringToObject(jdata, "RequestServerId", "1");
 	cJSON_AddStringToObject(jdata, "Priority", "L");
 	cJSON_AddStringToObject(jdata, "OtherInfo", "");
-	
-	
 	
 
 
@@ -499,40 +489,67 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
 
 		http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
+		if ((cj = cJSON_Parse(http_data->http_response))) {
+
+
+			for (cjp = cj->child; cjp; cjp = cjp->next) {
+				char *name = cjp->string;
+				char *value = cjp->valuestring;
+
+				if (!value) {
+
+					if (!strcasecmp(name, "Result") && cjp->type == cJSON_Object) {
+
+						for (cjr = cjp->child; cjr; cjr = cjr->next) {
+
+							char *namex = cjr->string;
+
+							if (!strcasecmp(namex, "Position")) {
+
+								int valuex = cjr->valueint;
+								switch_channel_set_variable_printf(channel, "ards_queue_position", "%d", valuex);
+							}
+						}
+					}
+				}
+			}
+		}
+
+
+		http_data->http_response_code = httpRes;
+
+		switch_safe_free(http_data->stream.data);
+
+		if (pool) {
+			switch_core_destroy_memory_pool(&pool);
+		}
+
+
+
+		switch_safe_free(p);
+		cJSON_Delete(jdata);
+		jdata = NULL;
+
+
+
+
+		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
+			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+			switch_event_fire(&event);
+		}
+
+
+
+
+		cJSON_Delete(cj);
 	}
-
-	http_data->http_response_code = httpRes;
-
-	switch_safe_free(http_data->stream.data);
-
-	if (pool) {
-		switch_core_destroy_memory_pool(&pool);
-	}
-
-
-	
-	switch_safe_free(p);
-	cJSON_Delete(jdata);
-	jdata = NULL;
-
-
-	
-
-	if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
-		switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
-		switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
-		switch_event_fire(&event);
-	}
-
-
-
-
 
 	switch_safe_free(com);
 	switch_safe_free(ten);
@@ -581,8 +598,6 @@ static void send_notification(const char* event, const char* uuid, int company, 
 	SWITCH_STANDARD_STREAM(http_data->stream);
 
 
-	
-
 
 
 
@@ -595,8 +610,6 @@ static void send_notification(const char* event, const char* uuid, int company, 
 	cJSON_AddStringToObject(jdata, "Callback", "");
 
 
-	
-	
 
 	p = cJSON_Print(jdata);
 
@@ -675,6 +688,7 @@ static void register_ards(int company, int tenant){
 	//char tmpurl[1000];
 	char msg[1000];
 	char callback[1000];
+	char queue_position_url[1000];
 
 	char *p = "{}";
 
@@ -693,7 +707,9 @@ static void register_ards(int company, int tenant){
 
 
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/add", registerurl);
-	switch_snprintf(callback, sizeof(callback), globals.rpc_url);
+	switch_snprintf(callback, sizeof(callback), "%s/ards_route", globals.rpc_url);
+	switch_snprintf(queue_position_url, sizeof(queue_position_url), "%s/ards_position", globals.rpc_url);
+	
 
 	/*
 
@@ -709,11 +725,6 @@ static void register_ards(int company, int tenant){
 
 	switch_snprintf(msg, sizeof(msg), "%d|%d|CALLSERVER|ARDS|CALL|%s|%d", company, tenant, callback, 1);
 
-
-
-
-
-
 	
 	jdata = cJSON_CreateObject();
 	cJSON_AddNumberToObject(jdata, "Company", company);
@@ -722,6 +733,8 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
 	cJSON_AddStringToObject(jdata, "CallbackUrl", callback);
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
+	cJSON_AddTrueToObject(jdata, "ReceiveQueuePosition");
+	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
 	cJSON_AddNumberToObject(jdata, "ServerID", 1);
 	p = cJSON_Print(jdata);
 	
@@ -744,9 +757,6 @@ static void register_ards(int company, int tenant){
 
 	*/
 
-
-
-	
 
 	//switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, strlen(msg));
 	//switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, (void *)msg);
@@ -876,23 +886,14 @@ SWITCH_STANDARD_APP(queue_music_function)
 
 				mydata = strdup(http_data->stream.data);
 				switch_assert(mydata);
-
 				//int argc = switch_separate_string(mydata, ':', argv, (sizeof(argv) / sizeof(argv[0])));
-
 				switch_channel_set_variable(channel, "ards_hold_music", argv[0]);
 				switch_channel_set_variable(channel, "ards_first_announcement", argv[1]);
 				switch_channel_set_variable(channel, "ards_announcement", argv[2]);
 				switch_channel_set_variable(channel, "ards_announcement_time", argv[3]);
-
-
 				switch_safe_free(mydata);
 
-
 			}
-
-
-
-
 
 		}
 
@@ -917,6 +918,7 @@ SWITCH_STANDARD_APP(ards_function)
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", url, uuid);
 
 	char dbuf[10];
+	char music_file_path[1000];
 	switch_input_args_t args = { 0 };
 	switch_channel_t *channel = switch_core_session_get_channel(session);
 	char *uuid = switch_core_session_get_uuid(session);
@@ -926,9 +928,10 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *firstannouncement = switch_channel_get_variable(channel, "ards_first_announcement");
 	const char *announcement = switch_channel_get_variable(channel, "ards_announcement");
 	const char *announcement_time = switch_channel_get_variable(channel, "ards_announcement_time");
-
-
-
+	const char *position_announcement = switch_channel_get_variable(channel, "ards_position_announcement");
+	const char *position = switch_channel_get_variable(channel, "ards_queue_position");
+	const char *position_language = switch_channel_get_variable(channel, "ards_position_language");
+	
 	ards_moh_step moh_step = ARDS_PRE_MOH;
 	int time_a = 0;
 	switch_status_t pstatus;
@@ -939,10 +942,21 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *tenant = NULL;
 //	int argc;
 	char *mydata = NULL, *argv[5];
+	
+	if (!position_language){
+		position_language = "en";
+	}
 
 	if (announcement_time){
 		time_a = atoi(announcement_time);
 	}
+
+
+	if (position_announcement && !strcasecmp(position_announcement, "true")){
+		
+
+	}
+	
 
 	mydata = strdup(data);
 	switch_separate_string(mydata, ',', argv, (sizeof(argv) / sizeof(argv[0])));
@@ -1000,14 +1014,11 @@ SWITCH_STANDARD_APP(ards_function)
 		
 	}
 
-
-	add_ards(atoi(company), atoi(tenant), skill, uuid);
-
-
-
-
+	add_ards(atoi(company), atoi(tenant), skill, uuid, channel);
+	position = switch_channel_get_variable(channel, "ards_queue_position");
 	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
+	/*
 	if (firstannouncement){
 
 		char music_path[1000];
@@ -1021,12 +1032,16 @@ SWITCH_STANDARD_APP(ards_function)
 		switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s", globals.durl, tenant, company,announcement );
 		announcement = music_path;
 	}
+	*/
 
 
 
+	if (!strcasecmp(position_announcement, "true") && position){
 
+		moh_step = ARDS_POSITION_ANNOUNCEMENT;
+	}
+	else if (firstannouncement){
 
-	if (firstannouncement){
 		moh_step = ARDS_PRE_MOH;
 
 	}
@@ -1034,6 +1049,7 @@ SWITCH_STANDARD_APP(ards_function)
 		moh_step = ARDS_MOH;
 	}
 
+	/*
 
 
 	if (!tmp) {
@@ -1045,15 +1061,6 @@ SWITCH_STANDARD_APP(ards_function)
 			char music_path[1000];
 			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company,tmp);
 			tmp = music_path;
-
-			/*
-
-			char music_path[1000];
-			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}file_string://%s", time_a, tmp);
-			tmp = music_path;
-
-
-			*/
 		}
 		else{
 
@@ -1067,9 +1074,11 @@ SWITCH_STANDARD_APP(ards_function)
 	if (tmp) {
 		music = tmp;
 	}
-
+	*/
 	if (!strcasecmp(music, "silence")) {
-		music = "silence_stream://-1";
+		//music = "silence_stream://-1";
+
+		switch_snprintf(music_file_path, sizeof(music_file_path), "silence_stream://-1");
 	}
 	
 
@@ -1085,25 +1094,65 @@ SWITCH_STANDARD_APP(ards_function)
 		////////////////////////////////////////////////////////////////////////////////
 		if (moh_step == ARDS_PRE_MOH){
 
-			music = firstannouncement;
+			//music = firstannouncement;
+			switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, firstannouncement);
 
 		}
 		else if (moh_step == ARDS_MOH)
 		{
-			music = tmp;
+			//music = tmp;
+			if (!tmp) {
+
+				tmp = switch_channel_get_hold_music(channel);
+				switch_snprintf(music_file_path, sizeof(music_file_path), tmp);
+			}
+			else{
+				if (time_a > 0){
+
+					//char music_path[1000];
+					switch_snprintf(music_file_path, sizeof(music_file_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company, tmp);
+					//tmp = music_path;
+				}
+				else{
+
+					//char music_path[1000];
+					switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, tmp);
+					//tmp = music_path;
+
+				}
+			}
 		}
 		else if(moh_step == ARDS_MOH_ANNOUNCEMENT)
 		{
-			music = announcement;
+			//music = announcement;
+			switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, announcement);
+		}
+		else if (moh_step == ARDS_POSITION_ANNOUNCEMENT || moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT){
+			
+			//char music_path[1000];
+			position = switch_channel_get_variable(channel, "ards_queue_position");
+			switch_snprintf(music_file_path, sizeof(music_file_path), "phrase:queue_position:%s", position);
+			//music = music_path;
 		}
 
+		
+
 		///////////////////////////////////////////////////////////////////////////////
-		//<action application="playback" data="{timeout=15000}file_string://${sound_dir}/music/8000/music1.wav"/>
+		pstatus = switch_ivr_play_file(session, NULL, music_file_path, &args);
+		
+		
+		
+		if (moh_step == ARDS_POSITION_ANNOUNCEMENT){
+			if (firstannouncement){
+				moh_step = ARDS_PRE_MOH;
 
-		pstatus = switch_ivr_play_file(session, NULL, music, &args);
+			}
+			else{
+				moh_step = ARDS_MOH;
+			}
 
-
-		if (moh_step == ARDS_PRE_MOH){
+		}
+		else if (moh_step == ARDS_PRE_MOH){
 			
 			moh_step = ARDS_MOH;
 		}
@@ -1115,6 +1164,15 @@ SWITCH_STANDARD_APP(ards_function)
 		}
 		else if (moh_step == ARDS_MOH_ANNOUNCEMENT){
 
+			if (!strcasecmp(position_announcement, "true") && position){
+
+				moh_step = ARDS_REPEAT_POSITION_ANNOUNCEMENT;
+			}
+			else{
+				moh_step = ARDS_MOH;
+			}
+		}
+		else if (moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT){
 			moh_step = ARDS_MOH;
 		}
 
@@ -1576,6 +1634,107 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	return NULL;
 }
 
+
+
+SWITCH_STANDARD_API(ards_position_function){
+	
+	
+	char *mydata = NULL;
+	switch_core_session_t *member_session = NULL;
+	char *sessionid = NULL;
+	char *queue = NULL;
+	char *position = NULL;
+	//int position = -1;
+	//switch_status_t pstatus;
+	switch_channel_t *channel = NULL;
+	
+
+	cJSON *cj, *cjp;
+
+
+	
+	if (!globals.running) {
+		return SWITCH_STATUS_FALSE;
+	}
+	if (zstr(cmd)) {
+		stream->write_function(stream, "-USAGE: \n%s\n", "[<uuid>|<url>|<company>|<tenant>|<class>|<type>|<category>]");
+		return SWITCH_STATUS_SUCCESS;
+	}
+	
+	mydata = strdup(cmd);
+	switch_assert(mydata);
+	
+	
+	
+	//{SessionId: item, QueueId: queueId, QueuePosition: i+1};
+	if ((cj = cJSON_Parse(mydata)) ) {
+		for (cjp = cj->child; cjp; cjp = cjp->next) {
+			char *name = cjp->string;
+			char *value = cjp->valuestring;
+
+			if (name && value) {
+				if (!strcasecmp(name, "SessionId")) {
+
+					switch_strdup(sessionid, value);
+
+				}
+				else if (!strcasecmp(name, "QueueId")) {
+
+					switch_strdup(queue, value);
+				}
+
+				else if (!strcasecmp(name, "QueuePosition")) {
+
+					switch_strdup(position, value);
+				}
+
+			}
+		}
+		
+		switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Possition recived  for %s and the position is %s", sessionid, position);
+		member_session = switch_core_session_locate(sessionid);
+		
+		if (member_session){
+			channel = switch_core_session_get_channel(member_session);
+			if (channel){
+				switch_channel_set_variable_printf(channel, "ards_queue_position", "%s", position);
+			}
+			else{
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No channel found");
+			}
+		}
+		else{
+		
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No session found");
+		}
+
+
+		/*
+		while (switch_channel_ready(channel)) {
+		pstatus = switch_ivr_phrase_macro(member_session, VM_MESSAGE_COUNT_MACRO, position, NULL, NULL);
+		switch_channel_flush_dtmf(channel);
+
+		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
+		break;
+		}
+		}*/
+	}
+	
+	
+	
+	switch_safe_free(mydata);
+	switch_safe_free(sessionid);
+	switch_safe_free(queue);
+
+	cJSON_Delete(cj);
+
+	 
+	return SWITCH_STATUS_SUCCESS;
+
+	
+}
+
 SWITCH_STANDARD_API(ards_route_function)
 {
 	
@@ -1839,6 +1998,9 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 	SWITCH_ADD_APP(app_interface, "ards", "ards", "ardscc", ards_function, "queue", SAF_NONE);
 	SWITCH_ADD_APP(app_interface, "ards_profile", "ards_profile", "ardscc_profilr", queue_music_function, "queue_music", SAF_NONE);
 	SWITCH_ADD_API(api_interface, "ards_route", "Route to agent", ards_route_function, "[<uuid>,<url>,<company>,<tenant>,<class>,<type>,<category>]");
+	SWITCH_ADD_API(api_interface, "ards_position", "Agent position", ards_position_function, "[<uuid>,<url>,<company>,<tenant>,<class>,<type>,<category>]");
+	
+	
 	SWITCH_ADD_API(api_interface, "ards_url_test", "Test ards url", ards_url_test, "");
 	
 
