@@ -141,6 +141,9 @@ curl --request POST "http://$FRONTEND_IP_PORT/frontends?host=ruleservice.$FRONTE
 curl --request POST "http://$FRONTEND_IP_PORT/frontends?host=voxboneapi.$FRONTEND&backends=http://voxboneapi.$APP_SVR_THREE.$FRONTEND:8832";
 
 
+curl --request POST "http://$FRONTEND_IP_PORT/frontends?host=productivityservice.$FRONTEND&backends=http://productivityservice.$APP_SVR_TWO.$FRONTEND:8876";
+
+
 
 
 
