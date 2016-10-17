@@ -299,7 +299,7 @@ docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/monitorre
 
 ;;
    "httpprogrammingapi")
-#21
+#21-
 cd /usr/src/;
 if [ ! -d "DVP-HTTPProgrammingAPI" ]; then
 	git clone git://github.com/DuoSoftware/DVP-HTTPProgrammingAPI.git;
