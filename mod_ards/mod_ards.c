@@ -1712,6 +1712,12 @@ SWITCH_STANDARD_API(ards_position_function){
 
 	cJSON_Delete(cj);
 
+	if (member_session) {
+
+		switch_core_session_rwunlock(member_session);
+
+	}
+
 	 
 	return SWITCH_STATUS_SUCCESS;
 
