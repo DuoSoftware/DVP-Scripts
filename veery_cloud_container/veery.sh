@@ -511,7 +511,7 @@ docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/cdrgenera
 ;;
 
  "productivityservice")
-#36
+#38
 cd /usr/src/;
 if [ ! -d "DVP-ProductivityService" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -524,7 +524,7 @@ docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/productiv
 ;;
 
  "mailreceiver")
-#36
+#39
 cd /usr/src/;
 if [ ! -d "DVP-MailReceiver" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -537,7 +537,7 @@ docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/mailrecei
 ;;
 
  "socialconnector")
-#36
+#40
 cd /usr/src/;
 if [ ! -d "DVP-SocialConnector" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -549,7 +549,19 @@ cd /usr/src/;
 docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/socialconnector/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_SOCIALCONNECTOR_PORT=8878" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="SYS_SMSSERVER_HOST=$SMS_SERVER" --env="SYS_SMSSERVER_PORT=$SMS_PORT" --env="SYS_SMSSERVER_PASSWORD=$SMS_PASSWORD" --env="SYS_SMSSERVER_USER=$SMS_USER"  --env="VIRTUAL_HOST=socialconnector.*" --env="LB_FRONTEND=socialconnector.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_RESOURCESERVICE_HOST=resourceservice.$FRONTEND" --env="SYS_RESOURCESERVICE_VERSION=$HOST_VERSION" --env="SYS_INTERACTIONS_HOST=interactions.#FRONTEND" --env="SYS_INTERACTIONS_VERSION=$HOST_VERSION" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_LITETICKET_HOST=liteticket.$FRONTEND" --env="SYS_LITETICKET_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --env="SYS_FACEBOOK_URL=https://graph.facebook.com/v2.7/" --expose=8876/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name socialconnector socialconnector node /usr/local/src/socialconnector/app.js;
 #--env="SYS_RESOURCESERVICE_HOST=resourceservice.$FRONTEND" --env="SYS_RESOURCESERVICE_VERSION=$HOST_VERSION" --env="SYS_INTERACTIONS_HOST=interactions.#FRONTEND" --env="SYS_INTERACTIONS_VERSION=$HOST_VERSION" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_LITETICKET_HOST=liteticket.$FRONTEND" --env="SYS_LITETICKET_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --env="SYS_FACEBOOK_URL=https://graph.facebook.com/v2.7/"
 #--env="SYS_RESOURCESERVICE_PORT=" --env="SYS_INTERACTIONS_PORT=" --env"SYS_SCHEDULEWORKER_PORT=" --env="SYS_LITETICKET_PORT=" --env="SYS_ARDSLITESERVICE_PORT=" 
+;;
 
+ "todolistservice")
+#39
+cd /usr/src/;
+if [ ! -d "DVP-ToDoListService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone git://github.com/DuoSoftware/DVP-ToDoListService.git;
+fi
+cd DVP-ToDoListService;
+docker build -t "todolistservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/todolistservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_TODOLISTSERVICE_PORT=8879" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=todolistservice.$FRONTEND" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=todolistservice.*" --env="LB_FRONTEND=todolistservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND" --env="SYS_NOTIFICATIONSERVICE_VERSION=$HOST_VERSION" --expose=8879/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name todolistservice todolistservice node /usr/local/src/todolistservice/app.js;
 ;;
 
 esac
