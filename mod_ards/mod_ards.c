@@ -1226,10 +1226,6 @@ SWITCH_STANDARD_APP(ards_function)
 
 	}
 
-
-	
-
-
 	return;
 }
 
@@ -1426,10 +1422,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_channel_t *member_channel = switch_core_session_get_channel(member_session);
 			switch_channel_t *agent_channel = switch_core_session_get_channel(agent_session);
 
-			
-
-			
-
 
 			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
 			if (!globals.rurl){
@@ -1504,8 +1496,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
 
-
-
 			ardsfeatures = switch_mprintf("execute_extension::att_xfer XML ARDSFeatures|%q|%q", tenant, company);
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
@@ -1513,8 +1503,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
-			
-			
 			
 			ardsoutboundfeatures = switch_mprintf("execute_extension::att_xfer_outbound XML ARDSFeatures|%q|%q", tenant, company);
 
@@ -1529,9 +1517,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_safe_free(ardsoutboundfeatures);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 
 			switch_ivr_uuid_bridge(h->member_session_uuid, switch_core_session_get_uuid(agent_session));
@@ -1633,8 +1618,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 	return NULL;
 }
-
-
 
 SWITCH_STANDARD_API(ards_position_function){
 	
