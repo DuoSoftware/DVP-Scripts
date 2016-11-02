@@ -134,7 +134,7 @@ static switch_status_t play_group1(switch_say_method_t method, int a, int b, int
 
 			if(a == 1)
 			{
-				switch_say_file(sh, "digits/s_h-%d", a);
+				switch_say_file(sh, "digits/s_k-%d", a);
 				switch_say_file(sh, "digits/s_k-hundred");
 			}
 			else
