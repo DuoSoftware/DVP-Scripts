@@ -134,7 +134,7 @@ static switch_status_t play_group1(switch_say_method_t method, int a, int b, int
 
 			if(a == 1)
 			{
-				switch_say_file(sh, "digits/s_h-%d", a);
+				switch_say_file(sh, "digits/s_k-%d", a);
 				switch_say_file(sh, "digits/s_k-hundred");
 			}
 			else
@@ -210,7 +210,7 @@ static switch_status_t play_group2(switch_say_method_t method, int a, int b, int
 
 			if(a == 1)
 			{
-				switch_say_file(sh, "digits/s_h-%d", a);
+				switch_say_file(sh, "digits/%d", a);
 				switch_say_file(sh, "digits/s_k-hundred");
 			}
 			else
@@ -252,10 +252,11 @@ static switch_status_t play_group2(switch_say_method_t method, int a, int b, int
 			} 
 			else
 			{
-				if(c > 1)
-				{
+
+				if (c > 0){
 					switch_say_file(sh, "digits/s_i-%d", c);
 				}
+
 			}
 		}
 
@@ -611,13 +612,13 @@ static switch_status_t sin_say_money(switch_say_file_handle_t *sh, char *tosay, 
 
 	/* Say dollar amount */
 
-	if (atoi(dollars) == 1) {
-		switch_say_file(sh, "currency/rupee");
-		sin_say_general_count(sh, dollars, say_args);
-	} else {
+	//if (atoi(dollars) == 1) {
+	//	switch_say_file(sh, "currency/rupee");
+	//	sin_say_general_count(sh, dollars, say_args);
+	//} else {
 		switch_say_file(sh, "currency/rupees");
 		sin_say_general_count(sh, dollars, say_args);
-	}
+	//}
 
 		
 
