@@ -533,7 +533,7 @@ fi
 cd DVP-MailReceiver;
 docker build -t "mailreceiver:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/mailreceiver/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_MAILRECEIVER_PORT=8877" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_MAILRECEIVER_SERVER_TYPE=SOCIALMEDIACONNECTOR" --env="HOST_NAME=mailreceiver.$FRONTEND" --env="SYS_SERVER_ID=" --env="SYS_CALLBACK_OPTION=GET" --env="SYS_REQUEST_TYPE=CALL" --env="SYS_SERVER_ID=2" --env="SYS_RESOURCE_TYPE=cluster" --env="SYS_EMAIL_QUEUE_NAME=EMAILOUT" --env="SYS_SMS_QUEUE_NAME=SMSOUT" --env="SYS_SMTP_LISTNER=true" --env="SYS_SMTP_SENDER=true" --env="SYS_SMS_SENDER=true" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="SYS_SMSSERVER_HOST=$SMS_SERVER" --env="SYS_SMSSERVER_PORT=$SMS_PORT" --env="SYS_SMSSERVER_PASSWORD=$SMS_PASSWORD" --env="SYS_SMSSERVER_USER=$SMS_USER"  --env="VIRTUAL_HOST=mailreceiver.*" --env="LB_FRONTEND=mailreceiver.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_SMTP_HOST=SMTP_HOST" --env="SYS_SMTP_PORT=$SMTP_PORT" --env="SYS_SMTP_USER=$SMTP_USER" --env="SYS_SMTP_PASSWORD=$SMTP_PASSWORD" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_LITETICKET_HOST=liteticket.$FRONTEND" --env="SYS_LITETICKET_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --expose=8877/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name mailreceiver mailreceiver node /usr/local/src/mailreceiver/app.js;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/mailreceiver/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_MAILRECEIVER_PORT=8877" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_ENABLE_SMTPLISTNER=true" --env="HOST_ENABLE_SMTPSENDER=true" --env="HOST_ENABLE_SMSSENDER=true" --env="HOST_ENABLE_IMAPLISTNER=true" --env="HOST_NAME=mailreceiver.$FRONTEND" --env="SYS_SERVER_ID=" --env="SYS_CALLBACK_OPTION=GET" --env="SYS_REQUEST_TYPE=CALL" --env="SYS_SERVER_ID=2" --env="SYS_RESOURCE_TYPE=cluster" --env="SYS_EMAIL_QUEUE_NAME=EMAILOUT" --env="SYS_SMS_QUEUE_NAME=SMSOUT" --env="SYS_SMTP_LISTNER=true" --env="SYS_SMTP_SENDER=true" --env="SYS_SMS_SENDER=true" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD" --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="SYS_SMSSERVER_HOST=$SMS_SERVER" --env="SYS_SMSSERVER_PORT=$SMS_PORT" --env="SYS_SMSSERVER_PASSWORD=$SMS_PASSWORD" --env="SYS_SMSSERVER_USER=$SMS_USER" --env="VIRTUAL_HOST=mailreceiver.*" --env="LB_FRONTEND=mailreceiver.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="IMAP_USER_NAME=duodemouser@gmail.com" --env="IMAP_PASSWORD=DuoS123456" --env="IMAP_HOST=imap.gmail.com" --env="IMAP_PORT=993" --env="IMAP_SECURITY=true" --env="IMAP_MAILBOX=INBOX" --env="IMAP_SEEN=true" --env="IMAP_COMPANY=103" --env="IMAP_TENAT=1" --env="IMAP_FETCH=true" --env="SYS_SMTP_HOST=$SMTP_HOST" --env="SYS_SMTP_PORT=$SMTP_PORT" --env="SYS_SMTP_USER=$SMTP_USER" --env="SYS_SMTP_PASSWORD=$SMTP_PASSWORD" --env="SYS_RESOURCESERVICE_HOST=resourceservic.$FRONTEND" --env="SYS_RESOURCESERVICE_VERSION=$HOST_VERSION" --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_LITETICKET_HOST=liteticket.$FRONTEND" --env="SYS_LITETICKET_VERSION=$HOST_VERSION" --env="SYS_INTERACTIONS_HOST=interactions.$FRONTEND" --env="SYS_INTERACTIONS_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --expose=8877/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name mailreceiver mailreceiver node /usr/local/src/mailreceiver/app.js;
 ;;
 
  "socialconnector")
@@ -552,7 +552,7 @@ docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/socialcon
 ;;
 
  "todolistservice")
-#39
+#41
 cd /usr/src/;
 if [ ! -d "DVP-ToDoListService" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -564,9 +564,49 @@ cd /usr/src/;
 docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/todolistservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_TODOLISTSERVICE_PORT=8879" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=todolistservice.$FRONTEND" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=todolistservice.*" --env="LB_FRONTEND=todolistservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND" --env="SYS_NOTIFICATIONSERVICE_VERSION=$HOST_VERSION" --expose=8879/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name todolistservice todolistservice node /usr/local/src/todolistservice/app.js;
 ;;
 
+ "walletservice")
+#42
+cd /usr/src/;
+if [ ! -d "DVP-Wallet" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-Wallet.git;
+fi
+cd DVP-Wallet;
+docker build -t "walletservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/walletservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_WALLETSERVICE_PORT=8880" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_KEY=" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=walletservice.*" --env="LB_FRONTEND=walletservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_LIMITSERVICE_HOST=limithandler.$FRONTEND" --env="SYS_LIMITSERVICE_VERSION=$HOST_VERSION" --env="SYS_PHONENUMBERTRUNK_HOST=phonenumbertrunkservice.$FRONTEND" --env="SYS_PHONENUMBERTRUNK_VERSION=$HOST_VERSION" --env="SYS_VOXBONE_URL=https://sandbox.voxbone.com/ws-voxbone/services/rest" --expose=8880/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name walletservice walletservice node /usr/local/src/walletservice/app.js;
+;;
+
+ "billingservice")
+#43
+cd /usr/src/;
+if [ ! -d "DVP-Billing" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-Billing.git;
+fi
+cd DVP-Billing;
+docker build -t "billingservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/billingservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_BILLINGSERVICE_PORT=8881" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=billingservice.*" --env="LB_FRONTEND=billingservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --env="SYS_WALLETSERVICE_HOST=walletservice.$FRONTEND" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --expose=8881/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name billingservice billingservice node /usr/local/src/billingservice/app.js;
+;;
+
+
+ "integrationapi")
+#43
+cd /usr/src/;
+if [ ! -d "DVP-IntegrationAPI" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-IntegrationAPI.git;
+fi
+cd DVP-IntegrationAPI;
+docker build -t "integrationapi:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/integrationapi/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_INTEGRATIONAPI_PORT=8882" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=integrationapi.*" --env="LB_FRONTEND=integrationapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8882/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name integrationapi integrationapi node /usr/local/src/integrationapi/app.js;
+;;
+
 esac
 done
 
 
-		
+
 		
