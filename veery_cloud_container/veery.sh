@@ -189,7 +189,7 @@ fi
 cd DVP-VoxboneAPI;
 docker build -t "voxboneapi:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/voxboneapi/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_VERSION=$HOST_VERSION" --env="VOXBONE_URL=https://sandbox.voxbone.com/ws-voxbone/services/rest" --env="HOST_VOXBONEAPI_PORT=8832" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_PHONENUMBERTRUNKSERVICE_HOST=phonenumbertrunkservice.$FRONTEND" --env="SYS_PHONENUMBERTRUNKSERVICE_NODE_CONFIG_DIR=/usr/local/src/phonenumbertrunkservice/config" --env="SYS_PHONENUMBERTRUNKSERVICE_PORT=8818" --env="SYS_LIMITHANDLER_HOST=limithandler.$FRONTEND" --env="SYS_LIMITHANDLER_NODE_CONFIG_DIR=/usr/local/src/limithandler/config" --env="SYS_LIMITHANDLER_PORT=8815" --env="SYS_BILLINGSERVICE_HOST=billingservice.$FRONTEND" --env="SYS_BILLINGSERVICE_PORT=$LB_PORT" --env="SYS_BILLINGSERVICE_VERSION=$HOST_VERSION" --env="SYS_WALLETSERVICE_HOST=walletservice.$FRONTEND" --env="SYS_WALLETSERVICE_PORT=$LB_PORT" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --env="VOXBONE_URL=$VOX_URL" --env="VOX_APIKEY=$VOX_KEY" --env="VIRTUAL_HOST=voxboneapi.*" --env="LB_FRONTEND=voxboneapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8832/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name voxboneapi voxboneapi node /usr/local/src/voxboneapi/app.js;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/voxboneapi/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_VERSION=$HOST_VERSION" --env="VOXBONE_URL=https://sandbox.voxbone.com/ws-voxbone/services/rest" --env="HOST_VOXBONEAPI_PORT=8832" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_PHONENUMBERTRUNKSERVICE_HOST=phonenumbertrunkservice.$FRONTEND" --env="SYS_PHONENUMBERTRUNKSERVICE_NODE_CONFIG_DIR=/usr/local/src/phonenumbertrunkservice/config" --env="SYS_PHONENUMBERTRUNKSERVICE_PORT=8818" --env="SYS_LIMITHANDLER_HOST=limithandler.$FRONTEND" --env="SYS_LIMITHANDLER_NODE_CONFIG_DIR=/usr/local/src/limithandler/config" --env="SYS_LIMITHANDLER_PORT=8815" --env="SYS_BILLINGSERVICE_HOST=billingservice.$FRONTEND" --env="SYS_BILLINGSERVICE_PORT=$LB_PORT" --env="SYS_BILLINGSERVICE_VERSION=$HOST_VERSION" --env="SYS_WALLETSERVICE_HOST=walletservice.$FRONTEND" --env="SYS_WALLETSERVICE_PORT=$LB_PORT" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --env="VOXBONE_URL=$VOX_URL" --env="VOX_APIKEY=$VOX_KEY" --env="VIRTUAL_HOST=voxboneapi.*" --env="LB_FRONTEND=voxboneapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8832/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name voxboneapi voxboneapi node /usr/local/src/voxboneapi/app.js;
 
 ;;
    "ruleservice")
@@ -592,7 +592,7 @@ docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/billingse
 
 
  "integrationapi")
-#43
+#44
 cd /usr/src/;
 if [ ! -d "DVP-IntegrationAPI" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -602,6 +602,19 @@ cd DVP-IntegrationAPI;
 docker build -t "integrationapi:latest" .;
 cd /usr/src/;
 docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/integrationapi/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_INTEGRATIONAPI_PORT=8882" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=integrationapi.*" --env="LB_FRONTEND=integrationapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8882/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name integrationapi integrationapi node /usr/local/src/integrationapi/app.js;
+;;
+
+ "dashboardservice")
+#45
+cd /usr/src/;
+if [ ! -d "DVP-Billing" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-Billing.git;
+fi
+cd DVP-Billing;
+docker build -t "dashboardservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" --env="NODE_CONFIG_DIR=/usr/local/src/dashboardservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_DASHBOARDSERVICE_PORT=8883" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="VIRTUAL_HOST=dashboardservice.*" --env="LB_FRONTEND=dashboardservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_STATSD_HOST=$STATSD_HOST" --env="SSYS_STATSD_PORT=$STATSD_PORT" --expose=8883/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboardservice dashboardservice node /usr/local/src/dashboardservice/app.js;
 ;;
 
 esac
