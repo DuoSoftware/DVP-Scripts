@@ -618,6 +618,19 @@ cd /usr/src/;
 docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/dashboardservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_DASHBOARDSERVICE_PORT=8883" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="VIRTUAL_HOST=dashboardservice.*" --env="LB_FRONTEND=dashboardservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_STATSD_HOST=$STATSD_HOST" --env="SSYS_STATSD_PORT=$STATSD_PORT" --expose=8883/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboardservice dashboardservice node /usr/local/src/dashboardservice/app.js;
 ;;
 
+
+ "qamodule")
+#44
+cd /usr/src/;
+if [ ! -d "DVP-QAModule" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-QAModule.git;
+fi
+cd DVP-QAModule;
+docker build -t "qamodule:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/qamodule/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_QAMODULE_PORT=8884" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=qamodule.*" --env="LB_FRONTEND=qamodule.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8884/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name qamodule qamodule node /usr/local/src/qamodule/app.js;
+;;
 esac
 done
 
