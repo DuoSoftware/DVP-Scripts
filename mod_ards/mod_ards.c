@@ -1251,12 +1251,15 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char* msg;
 	char* ardsfeatures;
 	char* ardsoutboundfeatures;
+	char* ardsoutivrfeatures;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
 	switch_core_session_t *member_session;
 	int kval = switch_dtmftoi("3");
 	int rval = switch_dtmftoi("6");
+	int ival = switch_dtmftoi("9");
+	
 	bind_flags |= SBF_DIAL_ALEG;
 
 
@@ -1515,8 +1518,20 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			}
 			
 			
+			ardsoutivrfeatures  = switch_mprintf("execute_extension::att_xfer_ivr XML ARDSFeatures|%q|%q", tenant, company);
+			
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
+			if (switch_ivr_bind_dtmf_meta_session(agent_session, ival, bind_flags, (const char*)ardsoutivrfeatures) != SWITCH_STATUS_SUCCESS) {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
+			}
+			
+			
+			
+			
 			switch_safe_free(ardsfeatures);
 			switch_safe_free(ardsoutboundfeatures);
+			switch_safe_free(ardsoutivrfeatures);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
