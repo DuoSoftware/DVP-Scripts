@@ -642,7 +642,7 @@ fi
 cd DVP-CSATService;
 docker build -t "csatservice:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/csatservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CSATSERVICE_PORT=8883" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=csatservice" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT"  --env="LB_FRONTEND=qamodule.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8884/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name csatservice csatservice node /usr/local/src/csatservice/app.js;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/csatservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CSATSERVICE_PORT=8885" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=csatservice" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=csatservice.*" --env="LB_FRONTEND=csatservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8885/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name csatservice csatservice node /usr/local/src/csatservice/app.js;
 ;;
 
 
