@@ -353,7 +353,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 }
 
-static void add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel){
+static void add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority ){
 
 	const char *url = globals.url;
 	switch_memory_pool_t *pool = NULL;
@@ -420,7 +420,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddStringToObject(jdata, "SessionId", uuid);
 	cJSON_AddStringToObject(jdata, "RequestServerId", "1");
-	cJSON_AddStringToObject(jdata, "Priority", "L");
+	cJSON_AddStringToObject(jdata, "Priority", priority);
 	cJSON_AddStringToObject(jdata, "OtherInfo", "");
 	
 
@@ -938,6 +938,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 
 	const char *skill = NULL;
+	const char *pririty = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
 //	int argc;
@@ -967,6 +968,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 	//const char *priority = NULL;
 	skill = switch_channel_get_variable(channel, "ards_skill");
+	priority = switch_channel_get_variable(channel, "ards_priority");
 	company = switch_channel_get_variable(channel, "companyid");
 	tenant = switch_channel_get_variable(channel, "tenantid");
 
@@ -1014,7 +1016,7 @@ SWITCH_STANDARD_APP(ards_function)
 		
 	}
 
-	add_ards(atoi(company), atoi(tenant), skill, uuid, channel);
+	add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority);
 	position = switch_channel_get_variable(channel, "ards_queue_position");
 	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
