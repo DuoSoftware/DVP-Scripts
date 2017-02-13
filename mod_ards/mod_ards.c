@@ -938,7 +938,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 
 	const char *skill = NULL;
-	const char *pririty = NULL;
+	const char *priority = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
 //	int argc;
