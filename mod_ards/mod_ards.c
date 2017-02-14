@@ -1262,7 +1262,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	int rval = switch_dtmftoi("6");
 	int ival = switch_dtmftoi("9");
 	
-	bind_flags |= SBF_DIAL_ALEG;
+	//bind_flags |= SBF_DIAL_ALEG;
+	
+	bind_flags |= SBF_DIAL_BLEG;
+	bind_flags |= SBF_EXEC_SAME;
 
 
 
