@@ -1264,7 +1264,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	
 	//bind_flags |= SBF_DIAL_ALEG;
 	
-	bind_flags |= SBF_DIAL_BLEG;
+	bind_flags |= SBF_DIAL_ALEG;
 	bind_flags |= SBF_EXEC_SAME;
 
 
