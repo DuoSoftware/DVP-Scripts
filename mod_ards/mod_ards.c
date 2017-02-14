@@ -1264,7 +1264,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	
 	//bind_flags |= SBF_DIAL_ALEG;
 	
-	bind_flags |= SBF_DIAL_ALEG;
+	bind_flags |= SBF_DIAL_BLEG;
 	bind_flags |= SBF_EXEC_SAME;
 
 
@@ -1508,7 +1508,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			ardsfeatures = switch_mprintf("execute_extension::att_xfer XML ARDSFeatures|%q|%q", tenant, company);
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(member_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
@@ -1516,7 +1516,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			ardsoutboundfeatures = switch_mprintf("execute_extension::att_xfer_outbound XML ARDSFeatures|%q|%q", tenant, company);
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, rval, bind_flags, (const char*)ardsoutboundfeatures) != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(member_session, rval, bind_flags, (const char*)ardsoutboundfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
@@ -1525,7 +1525,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			ardsoutivrfeatures  = switch_mprintf("execute_extension::att_xfer_ivr XML ARDSFeatures|%q|%q", tenant, company);
 			
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, ival, bind_flags, (const char*)ardsoutivrfeatures) != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(member_session, ival, bind_flags, (const char*)ardsoutivrfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
