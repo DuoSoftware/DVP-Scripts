@@ -1725,6 +1725,7 @@ SWITCH_STANDARD_API(ards_position_function){
 		}*/
 	}
 	
+	stream->write_function(stream, "+OK");
 	
 	
 	switch_safe_free(mydata);
