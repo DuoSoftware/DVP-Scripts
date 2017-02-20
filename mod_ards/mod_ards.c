@@ -928,12 +928,15 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *firstannouncement = switch_channel_get_variable(channel, "ards_first_announcement");
 	const char *announcement = switch_channel_get_variable(channel, "ards_announcement");
 	const char *announcement_time = switch_channel_get_variable(channel, "ards_announcement_time");
+	const char *max_queue_time = switch_channel_get_variable(channel, "ards_max_queue_time");
 	const char *position_announcement = switch_channel_get_variable(channel, "ards_position_announcement");
 	const char *position = switch_channel_get_variable(channel, "ards_queue_position");
 	const char *position_language = switch_channel_get_variable(channel, "ards_position_language");
-	
+	switch_time_t t_queue_added = 0;
 	ards_moh_step moh_step = ARDS_PRE_MOH;
 	int time_a = 0;
+	long time_m = 0;
+	switch_bool_t queue_max_reached = SWITCH_FALSE;
 	switch_status_t pstatus;
 
 
@@ -952,6 +955,11 @@ SWITCH_STANDARD_APP(ards_function)
 		time_a = atoi(announcement_time);
 	}
 
+
+	if (max_queue_time) {
+		time_m = atol(max_queue_time);
+
+	}
 
 	if (position_announcement && !strcasecmp(position_announcement, "true")){
 		
@@ -1018,7 +1026,8 @@ SWITCH_STANDARD_APP(ards_function)
 
 	add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority);
 	position = switch_channel_get_variable(channel, "ards_queue_position");
-	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+	t_queue_added = local_epoch_time_now(NULL);
+	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, t_queue_added);
 
 	/*
 	if (firstannouncement){
@@ -1091,6 +1100,12 @@ SWITCH_STANDARD_APP(ards_function)
 	
 
 	while (switch_channel_ready(channel)) {
+
+
+		if (time_m > 0 && ((long)local_epoch_time_now(NULL) - (long)t_queue_added) > time_m) {
+			queue_max_reached = SWITCH_TRUE;
+			break;
+		}
 
 
 		////////////////////////////////////////////////////////////////////////////////
