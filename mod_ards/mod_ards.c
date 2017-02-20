@@ -1223,6 +1223,8 @@ SWITCH_STANDARD_APP(ards_function)
 		}
 	}
 	else{
+if(queue_max_reached){
+}
 
 		Inform_ards(ARDS_COMPLETED, uuid, "routed",atoi(company),atoi(tenant));
 
