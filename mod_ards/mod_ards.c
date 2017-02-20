@@ -1223,8 +1223,12 @@ SWITCH_STANDARD_APP(ards_function)
 		}
 	}
 	else{
-if(queue_max_reached){
-}
+
+
+		if (queue_max_reached) {
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Left queue after maximum waiting");
+		}
 
 		Inform_ards(ARDS_COMPLETED, uuid, "routed",atoi(company),atoi(tenant));
 
