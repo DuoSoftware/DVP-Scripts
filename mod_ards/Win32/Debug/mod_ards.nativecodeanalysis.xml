@@ -1,2 +1,17 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<DEFECTS></DEFECTS>
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>d:\projects\freeswitch\freeswitch\src\include\</FILEPATH>
+      <FILENAME>switch_utils.h</FILENAME>
+      <LINE>60</LINE>
+      <COLUMN>10</COLUMN>
+    </SFA>
+    <DEFECTCODE>6031</DEFECTCODE>
+    <DESCRIPTION>Return value ignored: 'snprintf'.</DESCRIPTION>
+    <FUNCTION>switch_get_hex_bytes</FUNCTION>
+    <DECORATED>switch_get_hex_bytes</DECORATED>
+    <FUNCLINE>50</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>
