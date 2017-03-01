@@ -47,7 +47,7 @@ fi
 cd DVP-DynamicConfigurationGenerator;
 docker build -t "dynamicconfigurationgenerator:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/dynamicconfigurationgenerator/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_CONFIG=$REDIS_DB_CONFIG" --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_FILESERVICE_PORT=8812" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION"  --env="HOST_DYNAMICCONFIGGEN_PORT=8816" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="VIRTUAL_HOST=dynamicconfigurationgenerator.*" --env="LB_FRONTEND=dynamicconfigurationgenerator.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8816/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dynamicconfigurationgenerator dynamicconfigurationgenerator node /usr/local/src/dynamicconfigurationgenerator/app.js;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/dynamicconfigurationgenerator/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="SYS_BILLING_ENABLED=$BILLING_ENABLED"  --env="SYS_BILLING_ENABLED=$BILLING_ENABLED" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_CONFIG=$REDIS_DB_CONFIG" --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_FILESERVICE_PORT=8812" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION"  --env="HOST_DYNAMICCONFIGGEN_PORT=8816" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="VIRTUAL_HOST=dynamicconfigurationgenerator.*" --env="LB_FRONTEND=dynamicconfigurationgenerator.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8816/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dynamicconfigurationgenerator dynamicconfigurationgenerator node /usr/local/src/dynamicconfigurationgenerator/app.js;
 ;;
 
    "resourceservice")
@@ -309,7 +309,7 @@ fi
 cd DVP-HTTPProgrammingAPI;
 docker build -t "httpprogrammingapi:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/httpprogrammingapi/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="SYS_FREESWITCH_HOST=$FREESWITCH_HOST"  --env="SYS_EVENTSOCKET_PORT=$EVENTSOCKET_PORT" --env="FS_PASSWORD=$FREESWITCH_EVENTSOCKET_PASSWORD" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="HOST_HTTPPROGRAMMINGAPI_PORT=8807" --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_FILESERVICE_NODE_CONFIG_DIR=/usr/local/src/fileservice/config" --env="SYS_FILESERVICE_PORT=8812" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION" --env="SYS_DOWNLOAD_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_DOWNLOAD_FILESERVICE_PORT=8812" --env="SYS_DOWNLOAD_FILESERVICE_VERSION=$HOST_VERSION" --env="SYS_RULESERVICE_HOST=$RULESERVICE_HOST" --env="SYS_RULESERVICE_PORT=8817" --env="SYS_RULESERVICE_VERSION=ruleservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_NODE_CONFIG_DIR=/usr/local/src/ardsliteservice/config" --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_QUEUEMUSIC_HOST=queuemusic.$FRONTEND" --env="SYS_QUEUEMUSIC_PORT=8842" --env="SYS_QUEUEMUSIC_VERSION=$HOST_VERSION" --env="SYS_INTERACTION_HOST=interactions.$FRONTEND" --env="SYS_INTERACTION_PORT=8873" --env="SYS_INTERACTION_VERSION=$HOST_VERSION" --env="SYS_TICKET_HOST=liteticket.$FRONTEND" --env="SYS_TICKET_PORT=8872" --env="SYS_TICKET_VERSION=1.0.0.0" --env="VIRTUAL_HOST=httpprogrammingapi.*" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="LB_FRONTEND=httpprogrammingapi.$FRONTEND" --env="SYS_CSAT_HOST=csatservice.$FRONTEND" --env="SYS_CSAT_PORT:8883" --env="SYS_CSAT_VERSION=$HOST_VERSION" --env="LB_PORT=$LB_PORT" --expose=8807/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name httpprogrammingapi httpprogrammingapi node /usr/local/src/httpprogrammingapi/app.js;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/httpprogrammingapi/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="SYS_FREESWITCH_HOST=$FREESWITCH_HOST"  --env="SYS_EVENTSOCKET_PORT=$EVENTSOCKET_PORT" --env="FS_PASSWORD=$FREESWITCH_EVENTSOCKET_PASSWORD" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="HOST_HTTPPROGRAMMINGAPI_PORT=8807" --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_FILESERVICE_NODE_CONFIG_DIR=/usr/local/src/fileservice/config" --env="SYS_FILESERVICE_PORT=8812" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION" --env="SYS_DOWNLOAD_FILESERVICE_HOST=fileservice.$FRONTEND" --env="SYS_DOWNLOAD_FILESERVICE_PORT=8812" --env="SYS_DOWNLOAD_FILESERVICE_VERSION=$HOST_VERSION" --env="SYS_RULESERVICE_HOST=$RULESERVICE_HOST" --env="SYS_RULESERVICE_PORT=8817" --env="SYS_RULESERVICE_VERSION=ruleservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_NODE_CONFIG_DIR=/usr/local/src/ardsliteservice/config" --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_QUEUEMUSIC_HOST=queuemusic.$FRONTEND" --env="SYS_QUEUEMUSIC_PORT=8842" --env="SYS_QUEUEMUSIC_VERSION=$HOST_VERSION" --env="SYS_INTERACTION_HOST=interactions.$FRONTEND" --env="SYS_INTERACTION_PORT=8873" --env="SYS_INTERACTION_VERSION=$HOST_VERSION" --env="SYS_TICKET_HOST=liteticket.$FRONTEND" --env="SYS_TICKET_PORT=8872" --env="SYS_TICKET_VERSION=1.0.0.0" --env="VIRTUAL_HOST=httpprogrammingapi.*" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="LB_FRONTEND=httpprogrammingapi.$FRONTEND" --env="SYS_CSAT_HOST=csatservice.$FRONTEND" --env="SYS_CSAT_PORT:8883" --env="SYS_CSAT_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_PORT=$LB_PORT" --env="LB_PORT=$LB_PORT" --expose=8807/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name httpprogrammingapi httpprogrammingapi node /usr/local/src/httpprogrammingapi/app.js;
  
 ;;
    "sipuserendpointservice")
@@ -400,7 +400,7 @@ fi
 cd DVP-DialerAPI;
 docker build -t "dialerapi:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DialerAPI/DuoDialer" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_DIALER=$REDIS_DB_DIALER" --env="HOST_DIALER_PORT=8836" --env="SYS_RULESERVICE_HOST=ruleservice.$FRONTEND" --env="SYS_RULESERVICE_NODE_CONFIG_DIR=/usr/local/src/ruleservice/config" --env="SYS_RULESERVICE_PORT=8817" --env="SYS_CAMPAIGNMANAGER_HOST=campaignmanager.$FRONTEND" --env="SYS_CAMPAIGNMANAGER_NODE_CONFIG_DIR=/usr/local/src/campaignmanager/config" --env="SYS_CAMPAIGNMANAGER_PORT=8827" --env="SYS_LIMITHANDLER_HOST=limithandler.$FRONTEND" --env="SYS_LIMITHANDLER_NODE_CONFIG_DIR=/usr/local/src/limithandler/config" --env="SYS_LIMITHANDLER_PORT=8815" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND" --env="SYS_NOTIFICATIONSERVICE_NODE_CONFIG_DIR=/usr/local/src/notificationservice/config" --env="SYS_NOTIFICATIONSERVICE_PORT=8833" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_NODE_CONFIG_DIR=/usr/local/src/ardsliteservice/config" --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_CALLBACKSERVICE_HOST=callbackservice.$FRONTEND" --env="SYS_CALLBACKSERVICE_PORT=8840" --env="SYS_FREESWITCH_HOST=$FREESWITCH_HOST" --env="SYS_FREESWITCH_EVENTSOCKET_PASSWORD=$FREESWITCH_EVENTSOCKET_PASSWORD" --env="SYS_XMLRPC_PORT=$XMLRPC_PORT" --env="SYS_EVENTSOCKET_PORT=$EVENTSOCKET_PORT" --env="SYS_CLUSTERCONFIGURATION_HOST=clusterconfig.$FRONTEND" --env="SYS_CLUSTERCONFIGURATION_PORT=8805" --env="VIRTUAL_HOST=dialerapi.*" --env="LB_FRONTEND=dialerapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8836/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dialerapi dialerapi go run *.go;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DialerAPI/DuoDialer" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_DIALER=$REDIS_DB_DIALER" --env="SYS_DIALER_ID=Dialer2" --env="HOST_DIALER_PORT=8836" --env="SYS_DIALER_CAMP_LIMIT=30" --env="SYS_RULESERVICE_HOST=ruleservice.$FRONTEND" --env="SYS_RULESERVICE_PORT=8817" --env="SYS_CAMPAIGNMANAGER_HOST=campaignmanager.$FRONTEND" --env="SYS_CAMPAIGNMANAGER_PORT=8827" --env="SYS_LIMITHANDLER_HOST=limithandler.$FRONTEND" --env="SYS_LIMITHANDLER_PORT=8815" --env="SYS_CALLBACKSERVICE_HOST=callbackservice.$FRONTEND" --env="SYS_CALLBACKSERVICE_PORT=8840" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND" --env="SYS_NOTIFICATIONSERVICE_PORT=8833" --env="SYS_CLUSTERCONFIGURATION_HOST=clusterconfig.$FRONTEND" --env="SYS_CLUSTERCONFIGURATION_PORT=8805" --env="SYS_FREESWITCH_HOST=$FREESWITCH_HOST" --env="SYS_FS_XMLRPC_PORT=$XMLRPC_PORT" --env="VIRTUAL_HOST=dialerapi.*" --env="LB_FRONTEND=dialerapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8836/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dialerapi dialerapi go run *.go;
 
 ;;
    "dashboard")
@@ -413,7 +413,7 @@ fi
 cd DVP-DashBoard;
 docker build -t "dashboard:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DashBoard" --env="HOST_TOKEN=$HOST_TOKEN" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_DASHBOARD_PORT=8841" --env="HOST_DASHBOARD_CACHE=$DASHBOARD_CACHE_TYPE" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_STATSD_HOST=$STATSD_HOST" --env="SYS_STATSD_PORT=$STATSD_PORT" --env="VIRTUAL_HOST=dashboard.*" --env="LB_FRONTEND=dashboard.$FRONTEND" --env="LB_PORT=80" --expose=8841/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboard dashboard go run *.go
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DashBoard" --env="HOST_TOKEN=$HOST_TOKEN" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="HOST_DASHBOARD_CACHE=$DASHBOARD_CACHE" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_DASHBOARD_PORT=8841" --env="HOST_DASHBOARD_CACHE=$DASHBOARD_CACHE_TYPE" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_STATSD_HOST=$STATSD_HOST" --env="SYS_STATSD_PORT=$STATSD_PORT" --env="VIRTUAL_HOST=dashboard.*" --env="LB_FRONTEND=dashboard.$FRONTEND" --env="LB_PORT=80" --expose=8841/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboard dashboard go run *.go
 #docker run -d -t
 ;;
    "cdrprocessor")
@@ -453,7 +453,7 @@ fi
 cd DVP-LiteTicket;
 docker build -t "liteticket:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/liteticket/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_LITETICKET_PORT=8872" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=liteticket.*" --env="LB_FRONTEND=liteticket.$FRONTEND"  --env="LB_PORT=$LB_PORT" --env="SYS_RESOURCESERVICE_HOST=resourceservice.$FRONTEND"  --env="SYS_RESOURCESERVICE_PORT=8831" --env="SYS_RESOURCESERVICE_VERSION=$HOST_VERSION" --env="SYS_SIPUSERENDPOINTSERVICE_HOST=sipuserendpointservice.$FRONTEND"  --env="SYS_SIPUSERENDPOINTSERVICE_PORT=8814" --env="SYS_SIPUSERENDPOINTSERVICE_VERSION=$HOST_VERSION" --env="SYS_CLUSTERCONFIG_HOST=clusterconfig.$FRONTEND"  --env="SYS_CLUSTERCONFIG_PORT=8805" --env="SYS_CLUSTERCONFIG_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND"  --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND"  --env="SYS_NOTIFICATIONSERVICE_PORT=8833" --env="SYS_NOTIFICATIONSERVICE_VERSION=$HOST_VERSION" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND"  --env="SYS_SCHEDULEWORKER_PORT=8852" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_INTERACTIONS_HOST=interactions.$FRONTEND" --env="SYS_INTERACTIONS_VERSION=$HOST_VERSION"  --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND"  --env="SYS_FILESERVICE_PORT=8812" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION" --expose=8872/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name liteticket liteticket node /usr/local/src/liteticket/app.js
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/liteticket/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_LITETICKET_PORT=8872" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=liteticket.*" --env="LB_FRONTEND=liteticket.$FRONTEND"  --env="LB_PORT=$LB_PORT" --env="SYS_RESOURCESERVICE_HOST=resourceservice.$FRONTEND"  --env="SYS_RESOURCESERVICE_PORT=8831" --env="SYS_RESOURCESERVICE_VERSION=$HOST_VERSION" --env="SYS_SIPUSERENDPOINTSERVICE_HOST=sipuserendpointservice.$FRONTEND"  --env="SYS_SIPUSERENDPOINTSERVICE_PORT=8814" --env="SYS_SIPUSERENDPOINTSERVICE_VERSION=$HOST_VERSION" --env="SYS_CLUSTERCONFIG_HOST=clusterconfig.$FRONTEND"  --env="SYS_CLUSTERCONFIG_PORT=8805" --env="SYS_CLUSTERCONFIG_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND"  --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND"  --env="SYS_NOTIFICATIONSERVICE_PORT=8833" --env="SYS_NOTIFICATIONSERVICE_VERSION=$HOST_VERSION" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND"  --env="SYS_SCHEDULEWORKER_PORT=8852" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_INTERACTIONS_HOST=interactions.$FRONTEND" --env="SYS_INTERACTIONS_VERSION=$HOST_VERSION" --env="SYS_FILESERVICE_HOST=fileservice.$FRONTEND"  --env="SYS_FILESERVICE_PORT=8812" --env="SYS_FILESERVICE_VERSION=$HOST_VERSION" --expose=8872/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name liteticket liteticket node /usr/local/src/liteticket/app.js
 #docker run -d -t
 
 ;;
@@ -620,7 +620,7 @@ docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE
 
 
  "qamodule")
-#44
+#46
 cd /usr/src/;
 if [ ! -d "DVP-QAModule" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -633,7 +633,7 @@ docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE
 ;;
 
  "csatservice")
-#44
+#47
 cd /usr/src/;
 if [ ! -d "DVP-CSATService" ]; then
   # Control will enter here if $DIRECTORY exists.
@@ -645,8 +645,86 @@ cd /usr/src/;
 docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/csatservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CSATSERVICE_PORT=8885" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=csatservice" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=csatservice.*" --env="LB_FRONTEND=csatservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8885/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name csatservice csatservice node /usr/local/src/csatservice/app.js;
 ;;
 
+ "diameterrelay")
+#48
+cd /usr/src/;
+if [ ! -d "DVP-DiameterRelay" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone git://github.com/DuoSoftware/DVP-DiameterRelay.git;
+fi
+cd DVP-DiameterRelay;
+docker build -t "diameterrelay:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/diameterrelay/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_DIAMETERRELAY_PORT=8886" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=diameterrelay" --env="VIRTUAL_HOST=diameterrelay.*" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_DIAMETERSERVER_HOST=diameterserver.$FRONTEND" --env="SYS_DIAMETERSERVER_PORT=$DIAMETER_SERVER_PORT" --env="SYS_DIAMETERSERVER_VERSION=$HOST_VERSION" --env="LB_FRONTEND=diameterrelay.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8886/tcp -p 8886:8886 --log-opt max-size=10m --log-opt max-file=10 --restart=always --name diameterrelay diameterrelay node /usr/local/src/diameterrelay/app.js;
+;;
+
+
+ "diameterclient")
+#49
+cd /usr/src/;
+if [ ! -d "DVP-DiameterClient" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-DiameterClient.git;
+fi
+cd DVP-DiameterClient;
+docker build -t "diameterclient:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/diameterclient/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_DIAMETERCLIENT_PORT=8887" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=diameterclient" --env="VIRTUAL_HOST=diameterclient.*" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_PORT=$LB_PORT" --env="SYS_WALLETSERVICE_HOST=walletservice.$FRONTEND" --env="SYS_WALLETSERVICE_PORT=$LB_PORT" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --env="SYS_DIAMETERRELAY_HOST=diameterrelay.$FRONTEND" --env="SYS_DIAMETERRELAY_PORT=$DIAMETER_RELAY_PORT" --env="LB_FRONTEND=diameterclient.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8887/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name diameterclient diameterclient node /usr/local/src/diameterclient/app.js;
+;;
+
+ "ipmessagingservice")
+#50
+cd /usr/src/;
+if [ ! -d "DVP-IPMessagingService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone git://github.com/DuoSoftware/DVP-IPMessagingService.git;
+fi
+cd DVP-IPMessagingService;
+docker build -t "ipmessagingservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/ipmessagingservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IPMESSANGERSERVICE_PORT=8887" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_NAME=ipmessagingservice.$FRONTEND" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=ipmessagingservice.*" --env="LB_FRONTEND=ipmessagingservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_INTERACTIONS_HOST=interactions.$FRONTEND" --env="SYS_INTERACTIONS_VERSION=$HOST_VERSION" --env="SYS_INTERACTIONS_PORT=$LB_PORT" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_VERSION=$HOST_VERSION" --env="SYS_ARDSLITESERVICE_PORT=$LB_PORT" --expose=8887/tcp -p 8887:8887 --log-opt max-size=10m --log-opt max-file=10 --restart=always --name ipmessagingservice ipmessagingservice node /usr/local/src/ipmessagingservice/app.js;
+;;
+
+ "diameterserver")
+#51
+cd /usr/src/;
+if [ ! -d "DVP-DiameterServer" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-DiameterServer.git;
+fi
+cd DVP-DiameterServer;
+docker build -t "diameterserver:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/diameterserver/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_DIAMETERSERVER_PORT=8891" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=diameterserver.*" --env="LB_FRONTEND=diameterserver.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_PORT=8842" --env="SYS_WALLETSERVICE_HOST=$WALLETSERVICE_HOST:$WALLERTSERVICE_PORT" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --env="SYS_WALLETSERVICE_PORT=8880" --env="SYS_MONITORRESTAPI_HOST=monitorrestapi.$FRONTEND" --env="SYS_MONITORRESTAPI_VERSION=$HOST_VERSION" --env="SYS_MONITORRESTAPI_PORT=8823" --expose=8891/tcp -p 8891:8891 --log-opt max-size=10m --log-opt max-file=10 --restart=always --name diameterserver diameterserver node /usr/local/src/diameterserver/app.js;
+;;
+
+ "skypebot")
+#52
+cd /usr/src/;
+if [ ! -d "DVP-SkypeBot" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone git://github.com/DuoSoftware/DVP-SkypeBot.git;
+fi
+cd DVP-SkypeBot;
+docker build -t "skypebot:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/skypebot/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_SKYPEBOT_PORT=8892" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_SECRET=$HOST_SECRET" --env="HOST_COMPANY=103" --env="HOST_TENANT=1" --env="SYS_EXT_MESSENGER_HOST=externalipmessagingservice.$FRONTEND" --env="SYS_EXT_MESSENGER_PORT=8890" --env="SYS_EXT_MESSENGER_VERSION=$HOST_VERSION" --env="SYS_CSAT_HOST=csatservice.$FRONTEND" --env="SYS_CSAT_PORT=$LB_PORT" --env="SYS_CSAT_VERSION=$HOST_VERSION" --expose=8892/tcp -p 8892:8892 --log-opt max-size=10m --log-opt max-file=10 --restart=always --name skypebot skypebot node /usr/local/src/skypebot/app.js;
+;;
+
+ "contacts")
+#53
+cd /usr/src/;
+if [ ! -d "DVP-Contacts" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone git://github.com/DuoSoftware/DVP-Contacts.git;
+fi
+cd DVP-Contacts;
+docker build -t "contacts:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/contacts/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CONTACTS_PORT=8893" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="VIRTUAL_HOST=contacts.*" --env="LB_FRONTEND=contacts.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8893/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name contacts contacts node /usr/local/src/contacts/app.js;
+;;
 
 esac
 done
-
+ 
 
