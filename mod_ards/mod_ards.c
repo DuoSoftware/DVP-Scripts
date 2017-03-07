@@ -1263,6 +1263,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_bool_t agent_found = SWITCH_FALSE;
 	switch_channel_t *member_channel = NULL;
 	const char *cid_name = NULL;
+	const char *engagement_type = "call";
+	const char *channel_name = NULL;
 	const char *cid_number = NULL;
 	const char *skill = NULL;
 	const char *caller_name = NULL;
@@ -1344,6 +1346,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			cid_number = caller_number;
 		}
 
+		if ((channel_name = switch_channel_get_variable(member_channel, "caller-channel-name")) && strstr(channel_name, "@sip.skype.com")) {
+			engagement_type = "skype";
+		}
+
+
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_name to: %s\n", cid_name);
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_number to: %s\n", cid_number);
 
@@ -1384,7 +1391,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 
-		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills);
+		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type);
 		if (!zstr(h->profile_name))
 		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 		switch_safe_free(msg);
