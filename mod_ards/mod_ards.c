@@ -1350,11 +1350,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			engagement_type = "skype";
 		}
 
-		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting channel name to: %s\n", channel_name);
-		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting channel name to: %s\n", strstr(channel_name, "@sip.skype.com"));
+		
+		//switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting channel name to: %s\n", strstr(channel_name, "@sip.skype.com"));
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_name to: %s\n", cid_name);
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_number to: %s\n", cid_number);
-
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Setting channel name to: %s\n", channel_name);
 		
 		switch_event_create(&ovars, SWITCH_EVENT_REQUEST_PARAMS);
 		//////add necessory event details/////////////////////////////////
