@@ -1346,7 +1346,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			cid_number = caller_number;
 		}
 
-		if ((channel_name = switch_channel_get_variable(member_channel, "caller-channel-name")) && strstr(channel_name, "@sip.skype.com")) {
+		if ((channel_name = switch_channel_get_variable(member_channel, "caller_channel_name")) && strstr(channel_name, "@sip.skype.com")) {
 			engagement_type = "skype";
 		}
 
