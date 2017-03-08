@@ -353,7 +353,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 }
 
-static void add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel){
+static void add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority ){
 
 	const char *url = globals.url;
 	switch_memory_pool_t *pool = NULL;
@@ -420,7 +420,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddStringToObject(jdata, "SessionId", uuid);
 	cJSON_AddStringToObject(jdata, "RequestServerId", "1");
-	cJSON_AddStringToObject(jdata, "Priority", "L");
+	cJSON_AddStringToObject(jdata, "Priority", priority);
 	cJSON_AddStringToObject(jdata, "OtherInfo", "");
 	
 
@@ -928,16 +928,20 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *firstannouncement = switch_channel_get_variable(channel, "ards_first_announcement");
 	const char *announcement = switch_channel_get_variable(channel, "ards_announcement");
 	const char *announcement_time = switch_channel_get_variable(channel, "ards_announcement_time");
+	const char *max_queue_time = switch_channel_get_variable(channel, "ards_max_queue_time");
 	const char *position_announcement = switch_channel_get_variable(channel, "ards_position_announcement");
 	const char *position = switch_channel_get_variable(channel, "ards_queue_position");
 	const char *position_language = switch_channel_get_variable(channel, "ards_position_language");
-	
+	switch_time_t t_queue_added = 0;
 	ards_moh_step moh_step = ARDS_PRE_MOH;
 	int time_a = 0;
+	long time_m = 0;
+	switch_bool_t queue_max_reached = SWITCH_FALSE;
 	switch_status_t pstatus;
 
 
 	const char *skill = NULL;
+	const char *priority = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
 //	int argc;
@@ -951,6 +955,11 @@ SWITCH_STANDARD_APP(ards_function)
 		time_a = atoi(announcement_time);
 	}
 
+
+	if (max_queue_time) {
+		time_m = atol(max_queue_time);
+
+	}
 
 	if (position_announcement && !strcasecmp(position_announcement, "true")){
 		
@@ -967,6 +976,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 	//const char *priority = NULL;
 	skill = switch_channel_get_variable(channel, "ards_skill");
+	priority = switch_channel_get_variable(channel, "ards_priority");
 	company = switch_channel_get_variable(channel, "companyid");
 	tenant = switch_channel_get_variable(channel, "tenantid");
 
@@ -1014,9 +1024,10 @@ SWITCH_STANDARD_APP(ards_function)
 		
 	}
 
-	add_ards(atoi(company), atoi(tenant), skill, uuid, channel);
+	add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority);
 	position = switch_channel_get_variable(channel, "ards_queue_position");
-	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+	t_queue_added = local_epoch_time_now(NULL);
+	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, t_queue_added);
 
 	/*
 	if (firstannouncement){
@@ -1089,6 +1100,12 @@ SWITCH_STANDARD_APP(ards_function)
 	
 
 	while (switch_channel_ready(channel)) {
+
+
+		if (time_m > 0 && ((long)local_epoch_time_now(NULL) - (long)t_queue_added) > time_m) {
+			queue_max_reached = SWITCH_TRUE;
+			break;
+		}
 
 
 		////////////////////////////////////////////////////////////////////////////////
@@ -1207,6 +1224,12 @@ SWITCH_STANDARD_APP(ards_function)
 	}
 	else{
 
+
+		if (queue_max_reached) {
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Left queue after maximum waiting");
+		}
+
 		Inform_ards(ARDS_COMPLETED, uuid, "routed",atoi(company),atoi(tenant));
 
 		switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
@@ -1240,6 +1263,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	switch_bool_t agent_found = SWITCH_FALSE;
 	switch_channel_t *member_channel = NULL;
 	const char *cid_name = NULL;
+	const char *engagement_type = "call";
+	const char *channel_name = NULL;
 	const char *cid_number = NULL;
 	const char *skill = NULL;
 	const char *caller_name = NULL;
@@ -1251,13 +1276,19 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char* msg;
 	char* ardsfeatures;
 	char* ardsoutboundfeatures;
+	char* ardsoutivrfeatures;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
 	switch_core_session_t *member_session;
 	int kval = switch_dtmftoi("3");
 	int rval = switch_dtmftoi("6");
-	bind_flags |= SBF_DIAL_ALEG;
+	int ival = switch_dtmftoi("9");
+	
+	//bind_flags |= SBF_DIAL_ALEG;
+	
+	bind_flags |= SBF_DIAL_BLEG;
+	bind_flags |= SBF_EXEC_SAME;
 
 
 
@@ -1315,11 +1346,16 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			cid_number = caller_number;
 		}
 
+		if ((channel_name = switch_channel_get_variable(member_channel, "channel_name")) && strstr(channel_name, "@sip.skype.com")) {
+			engagement_type = "skype";
+		}
 
 		
+		//switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting channel name to: %s\n", strstr(channel_name, "@sip.skype.com"));
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_name to: %s\n", cid_name);
-
-
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_number to: %s\n", cid_number);
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Setting channel name to: %s\n", channel_name);
+		
 		switch_event_create(&ovars, SWITCH_EVENT_REQUEST_PARAMS);
 		//////add necessory event details/////////////////////////////////
 
@@ -1356,7 +1392,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 
-		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound", h->member_uuid, skill, caller_number, caller_name, calling_number, h->skills);
+		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type);
 		if (!zstr(h->profile_name))
 		send_notification("agent_found", h->member_uuid,atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 		switch_safe_free(msg);
@@ -1489,6 +1525,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 			switch_safe_free(msg);
 
+			switch_channel_set_variable(member_channel, "ARDS-Resource-Profile-Name", h->profile_name);
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Id", h->resource_id);
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Name", h->resource_name);
 			switch_channel_set_variable(member_channel, "ARDS-SIP-Name", h->originate_display);
@@ -1500,7 +1537,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			ardsfeatures = switch_mprintf("execute_extension::att_xfer XML ARDSFeatures|%q|%q", tenant, company);
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(member_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
@@ -1508,14 +1545,26 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			ardsoutboundfeatures = switch_mprintf("execute_extension::att_xfer_outbound XML ARDSFeatures|%q|%q", tenant, company);
 
 			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
-			if (switch_ivr_bind_dtmf_meta_session(agent_session, rval, bind_flags, (const char*)ardsoutboundfeatures) != SWITCH_STATUS_SUCCESS) {
+			if (switch_ivr_bind_dtmf_meta_session(member_session, rval, bind_flags, (const char*)ardsoutboundfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
 			
 			
+			ardsoutivrfeatures  = switch_mprintf("execute_extension::att_xfer_ivr XML ARDSFeatures|%q|%q", tenant, company);
+			
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
+			if (switch_ivr_bind_dtmf_meta_session(member_session, ival, bind_flags, (const char*)ardsoutivrfeatures) != SWITCH_STATUS_SUCCESS) {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
+			}
+			
+			
+			
+			
 			switch_safe_free(ardsfeatures);
 			switch_safe_free(ardsoutboundfeatures);
+			switch_safe_free(ardsoutivrfeatures);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1705,6 +1754,7 @@ SWITCH_STANDARD_API(ards_position_function){
 		}*/
 	}
 	
+	stream->write_function(stream, "+OK");
 	
 	
 	switch_safe_free(mydata);
