@@ -1612,11 +1612,23 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			if (!zstr(h->profile_name)) {
 
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "diconnect process started");
+
 				times = switch_channel_get_timetable(member_channel);
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Got Times");
+
 				switch_snprintf(start_epoch, sizeof(start_epoch), "%" SWITCH_TIME_T_FMT, times->answered / 1000000);
 
-				msg = switch_mprintf("agent_disconnected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, start_epoch, ((long)local_epoch_time_now(NULL) - atol(start_epoch)));
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, start_epoch);
+
+				msg = switch_mprintf("agent_disconnected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, atol(start_epoch), ((long)local_epoch_time_now(NULL) - atol(start_epoch)));
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "message created %s", msg);
+
 				send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Notifications send");
 			}
 			switch_safe_free(msg);
 
