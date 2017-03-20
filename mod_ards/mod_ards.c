@@ -1612,31 +1612,17 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			if (!zstr(h->profile_name)) {
 
-				switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "diconnect process started");
-
 				times = switch_channel_get_timetable(member_channel);
-
-				switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Got Times");
-
 				switch_snprintf(start_epoch, sizeof(start_epoch), "%" SWITCH_TIME_T_FMT, times->answered / 1000000);
-
-				switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, start_epoch);
-
-				msg = switch_mprintf("agent_disconnected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, atol(start_epoch), ((long)local_epoch_time_now(NULL) - atol(start_epoch)));
-
-				switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "message created %s", msg);
-
+				msg = switch_mprintf("agent_disconnected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%ld", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, start_epoch, ((long)local_epoch_time_now(NULL) - atol(start_epoch)));
 				send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
-
-				switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Notifications send");
+				switch_safe_free(msg);
 			}
-			switch_safe_free(msg);
-
+			
 
 
 			switch_channel_set_variable_printf(member_channel, "ards_route_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-			
-
+		
 
 		}
 		else{
@@ -1670,13 +1656,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				if (!zstr(h->profile_name)) {
 
-					//times = switch_channel_get_timetable(member_channel);
-					//switch_snprintf(start_epoch, sizeof(start_epoch), "%" SWITCH_TIME_T_FMT, times->answered / 1000000);
-
-					msg = switch_mprintf("agent_rejected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, (long)local_epoch_time_now(NULL), (long)local_epoch_time_now(NULL));
+					msg = switch_mprintf("agent_rejected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%" SWITCH_TIME_T_FMT, h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, local_epoch_time_now(NULL), local_epoch_time_now(NULL));
 					send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+					switch_safe_free(msg);
 				}
-				switch_safe_free(msg);
+				
 
 			}
 
