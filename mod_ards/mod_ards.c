@@ -1612,7 +1612,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			if (!zstr(h->profile_name)) {
 
-				times = switch_channel_get_timetable(member_channel);
+				times = switch_channel_get_timetable(agent_channel);
 				switch_snprintf(start_epoch, sizeof(start_epoch), "%" SWITCH_TIME_T_FMT, times->answered / 1000000);
 				msg = switch_mprintf("agent_disconnected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%ld", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, start_epoch, ((long)local_epoch_time_now(NULL) - atol(start_epoch)));
 				send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
@@ -1628,6 +1628,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		else{
 
 			if (switch_channel_up(member_channel)){
+
 
 				Inform_ards(ARDS_REJECTED, h->member_uuid, switch_channel_cause2str(cause), atoi(h->company), atoi(h->tenant));
 				switch_channel_set_variable(member_channel, "ards_agent_found", NULL);
@@ -1661,6 +1662,37 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					switch_safe_free(msg);
 				}
 				
+
+			}
+			else {
+
+
+				//Inform_ards(ARDS_RING_REJECTED, h->member_uuid, "reject", atoi(h->company), atoi(h->tenant));
+				//switch_channel_set_variable(member_channel, "ards_agent_found", NULL);
+
+
+				/*if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ring-rejected");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
+					switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+					switch_event_fire(&event);
+				}
+*/
+
+				if (!zstr(h->profile_name)) {
+
+					msg = switch_mprintf("agent_rejected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%" SWITCH_TIME_T_FMT, h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, local_epoch_time_now(NULL), local_epoch_time_now(NULL));
+					send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+					switch_safe_free(msg);
+				}
 
 			}
 
