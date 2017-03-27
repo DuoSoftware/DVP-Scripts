@@ -39,6 +39,7 @@
 static struct {
 	switch_hash_t *ards_hash;
 	int debug;
+	int id;
 	int32_t threads;
 	int32_t running;
 	char *url;
@@ -201,9 +202,9 @@ static switch_status_t load_config(void)
 			else if (!strcasecmp(var, "notification_url")) {
 				globals.nurl = strdup(val);
 			}
-
-
-			
+			else if (!strcasecmp(var, "serverid")) {
+				globals.id = atoi(val);
+			}			
 
 		
 		}
@@ -735,7 +736,7 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddTrueToObject(jdata, "ReceiveQueuePosition");
 	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
-	cJSON_AddNumberToObject(jdata, "ServerID", 1);
+	cJSON_AddNumberToObject(jdata, "ServerID", globals.id);
 	p = cJSON_Print(jdata);
 	
 
