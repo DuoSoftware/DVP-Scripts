@@ -169,6 +169,8 @@ static switch_status_t load_config(void)
 			char *var = (char *)switch_xml_attr_soft(param, "name");
 			char *val = (char *)switch_xml_attr_soft(param, "value");
 
+			switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "Key %s value %s\n", var, val);
+
 			if (!strcasecmp(var, "debug")) {
 				globals.debug = atoi(val);
 			}else if (!strcasecmp(var, "url")) {
