@@ -39,7 +39,7 @@
 static struct {
 	switch_hash_t *ards_hash;
 	int debug;
-	int id;
+	char *id;
 	int32_t threads;
 	int32_t running;
 	char *url;
@@ -203,7 +203,7 @@ static switch_status_t load_config(void)
 				globals.nurl = strdup(val);
 			}
 			else if (!strcasecmp(var, "serverid")) {
-				globals.id = atoi(val);
+				globals.id = strdup(val);
 			}			
 
 		
@@ -420,7 +420,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	cJSON_AddStringToObject(jdata, "CallbackOption", "GET");
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddStringToObject(jdata, "SessionId", uuid);
-	cJSON_AddStringToObject(jdata, "RequestServerId", "1");
+	cJSON_AddStringToObject(jdata, "RequestServerId", globals.id);
 	cJSON_AddStringToObject(jdata, "Priority", priority);
 	cJSON_AddStringToObject(jdata, "OtherInfo", "");
 	
@@ -736,7 +736,7 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "RequestType", "CALL");
 	cJSON_AddTrueToObject(jdata, "ReceiveQueuePosition");
 	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
-	cJSON_AddNumberToObject(jdata, "ServerID", globals.id);
+	cJSON_AddStringToObject(jdata, "ServerID", globals.id);
 	p = cJSON_Print(jdata);
 	
 
