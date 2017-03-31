@@ -72,7 +72,7 @@ SWITCH_MODULE_DEFINITION(mod_say_sin, mod_say_sin_load, NULL, NULL);
 static switch_status_t play_group(switch_say_method_t method, int a, int b, int c, char *what, switch_say_file_handle_t *sh)
 {
 
-	if (a) 
+	/*if (a) 
 	{
 		switch_say_file(sh, "digits/s_h-%d", a);
 		switch_say_file(sh, "digits/s_hundred");
@@ -105,6 +105,84 @@ static switch_status_t play_group(switch_say_method_t method, int a, int b, int 
 			}
 		}
 	
+	if (what && (a || b || c)) {
+		switch_say_file(sh, what);
+	}
+*/
+
+
+
+	if (a)
+	{
+		if (b == 0 && c == 0)
+		{
+			if (a == 1)
+			{
+				switch_say_file(sh, "digits/s_i-hundred");
+			}
+			else
+			{
+				switch_say_file(sh, "digits/s_k-%d", a);
+				switch_say_file(sh, "digits/s_i-hundred");
+			}
+		}
+		else
+		{
+
+			if (a == 1)
+			{
+				switch_say_file(sh, "digits/%d", a);
+				switch_say_file(sh, "digits/s_k-hundred");
+			}
+			else
+			{
+				switch_say_file(sh, "digits/s_k-%d", a);
+				switch_say_file(sh, "digits/s_k-hundred");
+			}
+		}
+
+	}
+
+	if (b)
+	{
+		if (b > 1)
+		{
+
+			if (c == 0) {
+				if (method == SSM_COUNTED) {
+				}
+				else
+				{
+					switch_say_file(sh, "digits/s_i-%d0", b);
+				}
+			}
+			else
+			{
+				switch_say_file(sh, "digits/s_k-%d0", b);
+			}
+		}
+		else {
+			switch_say_file(sh, "digits/s_i-%d%d", b, c);
+			c = 0;
+		}
+	}
+	if (c)
+	{
+		if (method == SSM_COUNTED)
+		{
+			switch_say_file(sh, "digits/s_h-%d", c);
+		}
+		else
+		{
+
+			if (c > 0) {
+				switch_say_file(sh, "digits/s_i-%d", c);
+			}
+
+		}
+	}
+
+
 	if (what && (a || b || c)) {
 		switch_say_file(sh, what);
 	}
@@ -325,7 +403,7 @@ static switch_status_t sin_say_general_count(switch_say_file_handle_t *sh, char 
 			break;
 		case SSM_COUNTED:
 		case SSM_PRONOUNCED:
-			if ((status = play_group(SSM_PRONOUNCED, places[8], places[7], places[6], "digits/s_million", sh)) != SWITCH_STATUS_SUCCESS) {
+			if ((status = play_group1(SSM_PRONOUNCED, places[8], places[7], places[6], "digits/s_million", sh)) != SWITCH_STATUS_SUCCESS) {
 				return status;
 			}
 

@@ -1,6 +1,7 @@
 
 <configuration name="ards.conf" description="ARDS">
   <settings>
+    <param name="serverid" value="1"/>
     <param name="url" value="http://ardsliteservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/ARDS/request"/>
     <param name="register-url" value="http://ardsliteservice.104.131.67.21.xip.io/DVP/API/1.0.0.0/ARDS/requestserver"/>
     <param name="xml_rpc" value="http://159.203.160.47:8080/api"/>
