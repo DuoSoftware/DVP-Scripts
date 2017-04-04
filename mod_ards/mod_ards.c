@@ -1529,7 +1529,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 			if (!zstr(h->profile_name)) {
-				msg = switch_mprintf("agent_connected|%q|%q|%q|%q|%q|%q|inbound|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name);
+				msg = switch_mprintf("agent_connected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name,switch_core_session_get_uuid(agent_session));
 				send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 			}
 			switch_safe_free(msg);
