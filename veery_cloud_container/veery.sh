@@ -125,7 +125,7 @@ fi
 cd DVP-NotificationService;
 docker build -t "notificationservice:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/notificationservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_NOTIFICATIONSERVICE_PORT=8833" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="VIRTUAL_HOST=notificationservice.*" --env="LB_FRONTEND=notificationservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8833/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name notificationservice notificationservice node /usr/local/src/notificationservice/app.js;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/notificationservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_NOTIFICATIONSERVICE_PORT=8833" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_CRMINTEGRATION_HOST=crmintegrations.app.veery.cloud" --env="SYS_CRMINTEGRATION_PORT=8894" --env="SYS_CRMINTEGRATION_VERSION=$HOST_VERSION" --env="VIRTUAL_HOST=notificationservice.*" --env="LB_FRONTEND=notificationservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8833/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name notificationservice notificationservice node /usr/local/src/notificationservice/app.js;
 
 ;;
    "engagementservice")
@@ -494,7 +494,7 @@ fi
 cd DVP-FileService;
 docker build -t "fileservice:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/fileservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_FILESERVICE_PORT=8812" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="SYS_COUCH_HOST=$COUCH_HOST" --env="SYS_COUCH_PORT=$COUCH_PORT" --env="VIRTUAL_HOST=fileservice.*" --env="LB_FRONTEND=fileservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8812/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name fileservice fileservice node /usr/local/src/fileservice/app.js;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro -v $FILE_DIRECTORY_PATH:/usr/local/src/upload --env="NODE_CONFIG_DIR=/usr/local/src/fileservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_FILESERVICE_PORT=8812" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="SYS_COUCH_HOST=$COUCH_HOST" --env="SYS_COUCH_PORT=$COUCH_PORT" --env="VIRTUAL_HOST=fileservice.*" --env="LB_FRONTEND=fileservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8812/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name fileservice fileservice node /usr/local/src/fileservice/app.js;
 ;;
 
    "cdrgenerator")
@@ -724,6 +724,31 @@ cd /usr/src/;
 docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/contacts/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CONTACTS_PORT=8893" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="VIRTUAL_HOST=contacts.*" --env="LB_FRONTEND=contacts.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8893/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name contacts contacts node /usr/local/src/contacts/app.js;
 ;;
 
+  "crmintegrations")
+#54
+cd /usr/src/;
+if [ ! -d "DVP-CRMIntegrations" ]; then
+	git clone git://github.com/DuoSoftware/DVP-CRMIntegrations.git;
+fi
+
+cd DVP-CRMIntegrations;
+docker build -t "crmintegrations:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/crmintegrations/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CRMINTEGRATIONS_PORT=8894" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_MONITORRESTAPI_HOST=monitorrestapi.app.veery.cloud" --env="SYS_MONITORRESTAPI_PORT=8823" --env="SYS_MONITORRESTAPI_VERSION=$HOST_VERSION" --env="VIRTUAL_HOST=crmintegrations.*" --env="LB_FRONTEND=crmintegrations.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8894/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name crmintegrations crmintegrations node /usr/local/src/crmintegrations/app.js;
+;;
+
+ "carrierprovider")
+#5
+cd /usr/src/;
+if [ ! -d "DVP-CarrierProvider" ]; then
+	git clone git://github.com/DuoSoftware/DVP-CarrierProvider.git;
+fi
+
+cd DVP-CarrierProvider;
+docker build -t "carrierprovider:latest" .;
+cd /usr/src/;
+docker run -d -t --expose=8080/tcp -p 8090:8080 --name carrierprovider carrierprovider asadmin start-domain -v;
+;;
 esac
 done
  
