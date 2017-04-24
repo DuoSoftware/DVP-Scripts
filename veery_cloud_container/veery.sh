@@ -26,7 +26,7 @@ curl -sSL https://get.docker.com/gpg | sudo apt-key add -
 
 # Install Nginx-Proxy
 
-docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/localtime:/etc/localtime:ro --log-opt max-size=10m --log-opt max-file=10 jwilder/nginx-proxy
+docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/localtime:/etc/localtime:ro --restart=always --log-opt max-size=10m --log-opt max-file=10 jwilder/nginx-proxy
 
 # install services
 
