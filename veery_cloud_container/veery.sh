@@ -772,7 +772,7 @@ fi
 cd DVP-FileArchiveService;
 docker build -t "filearchiveservice:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro -v $FILE_DIRECTORY_PATH:/usr/local/src/upload --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-FileArchiveService/src" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --log-opt max-size=10m --log-opt max-file=10 --restart=always --name filearchiveservice filearchiveservice go run *.go;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro -v $FILE_DIRECTORY_PATH:/usr/local/src/upload --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-FileArchiveService" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --log-opt max-size=10m --log-opt max-file=10 --restart=always --name filearchiveservice filearchiveservice go run *.go;
 ;;
 
 esac
