@@ -588,7 +588,7 @@ fi
 cd DVP-Billing;
 docker build -t "billingservice:latest" .;
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/billingservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_BILLINGSERVICE_PORT=8881" --env="BILLING_SCHEDULE_FREQUENCY=$BILLING_SCHEDULE_FREQUENCY" --env="BILLING_SCHEDULE_TRIES=$BILLING_SCHEDULE_TRIES" --env="HOST_USERBILLING_ENABLED=$USERBILLING_ENABLED" --env="HOST_TENANTBILLING_ENABLED=$TENANTBILLING_ENABLED" --env="HOST_TENANT_NAME=$TENANT_NAME" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=billingservice.*" --env="LB_FRONTEND=billingservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --env="SYS_WALLETSERVICE_HOST=$WALLETSERVICE_HOST:$WALLERTSERVICE_PORT" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --expose=8881/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name billingservice billingservice node /usr/local/src/billingservice/app.js;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/billingservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_BILLINGSERVICE_PORT=8881" --env="BILLING_SCHEDULE_FREQUENCY=$BILLING_SCHEDULE_FREQUENCY" --env="BILLING_SCHEDULE_TRIES=$BILLING_SCHEDULE_TRIES" --env="HOST_USERBILLING_ENABLED=$USERBILLING_ENABLED" --env="HOST_TENANTBILLING_ENABLED=$TENANTBILLING_ENABLED" --env="HOST_TENANT_NAME=$TENANT_NAME" --env="BILLING_DATE=$BILLING_DATE" --env="BILLING_EMAIL_WARNING_ACTIVATION=$BILLING_EMAIL_WARNING" --env="BILLING_SMS_WARNING_ACTIVATION=$BILLING_SMS_WARNING" --env="BILLING_CALL_WARNING_ACTIVATION=$BILLING_CALL_WARNING" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="VIRTUAL_HOST=billingservice.*" --env="LB_FRONTEND=billingservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --env="SYS_WALLETSERVICE_HOST=$WALLETSERVICE_HOST:$WALLERTSERVICE_PORT" --env="SYS_WALLETSERVICE_VERSION=$HOST_VERSION" --expose=8881/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name billingservice billingservice node /usr/local/src/billingservice/app.js;
 ;;
 
 
@@ -749,6 +749,32 @@ docker build -t "carrierprovider:latest" .;
 cd /usr/src/;
 docker run -d -t --expose=8080/tcp -p 8090:8080 --name carrierprovider carrierprovider asadmin start-domain -v;
 ;;
+
+"agentdialerservice")
+#45
+cd /usr/src/;
+if [ ! -d "DVP-AgentDialerService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone  git://github.com/DuoSoftware/DVP-AgentDialerService.git;
+fi
+cd DVP-AgentDialerService;
+docker build -t "agentdialerservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="NODE_CONFIG_DIR=/usr/local/src/agentdialerservice/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_AGENTDIALERSERVICE_PORT=8895" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="VIRTUAL_HOST=agentdialerservice.*" --env="LB_FRONTEND=agentdialerservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8895/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name agentdialerservice agentdialerservice node /usr/local/src/agentdialerservice/app.js;
+;;
+
+"filearchiveservice")
+#29
+cd /usr/src/;
+if [ ! -d "DVP-FileArchiveService" ]; then
+	git clone git://github.com/DuoSoftware/DVP-FileArchiveService.git;
+fi
+cd DVP-FileArchiveService;
+docker build -t "filearchiveservice:latest" .;
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro -v $FILE_DIRECTORY_PATH:/usr/local/src/upload --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-FileArchiveService/src" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_USERSERVICE_HOST=userservice.$FRONTEND" --env="SYS_USERSERVICE_VERSION=$HOST_VERSION" --log-opt max-size=10m --log-opt max-file=10 --restart=always --name filearchiveservice filearchiveservice go run *.go;
+;;
+
 esac
 done
  
