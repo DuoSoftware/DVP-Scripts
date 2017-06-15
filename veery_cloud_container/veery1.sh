@@ -170,11 +170,11 @@ docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERS
 #11
 cd /usr/src/;
 if [ ! -d "DVP-CallBackService" ]; then
-	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CallBackService.git;
+	git clone https://github.com/DuoSoftware/DVP-CallBackService.git;
 fi
 
 cd DVP-CallBackService;
-docker build --build-arg VERSION_TAG=$VERSION_TAG -t "callbackservice:"$VERSION_TAG .;
+docker build -t "callbackservice:latest" .;
 cd /usr/src/;
 docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-CallBackService/CallbackServer" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_CALLBACKSERVICE_PORT=8840" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_CAMPAIGNMANAGER_HOST=campaignmanager.$FRONTEND" --env="SYS_CAMPAIGNMANAGER_NODE_CONFIG_DIR=/usr/local/src/campaignmanager/config" --env="SYS_CAMPAIGNMANAGER_PORT=8827" --env="VIRTUAL_HOST=callbackservice.*" --env="LB_FRONTEND=callbackservice.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8840/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name callbackservice callbackservice go run *.go;
 
@@ -393,11 +393,11 @@ docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERS
 #29
 cd /usr/src/;
 if [ ! -d "DVP-DialerAPI" ]; then
-	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DialerAPI.git;
+	git clone https://github.com/DuoSoftware/DVP-DialerAPI.git;
 fi
 
 cd DVP-DialerAPI;
-docker build --build-arg VERSION_TAG=$VERSION_TAG -t "dialerapi:"$VERSION_TAG .;
+docker build -t "dialerapi:latest" .;
 cd /usr/src/;
 docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DialerAPI/DuoDialer" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_DB_DIALER=$REDIS_DB_DIALER" --env="SYS_DIALER_ID=Dialer2" --env="HOST_DIALER_PORT=8836" --env="SYS_DIALER_CAMP_LIMIT=30" --env="SYS_RULESERVICE_HOST=ruleservice.$FRONTEND" --env="SYS_RULESERVICE_PORT=8817" --env="SYS_CAMPAIGNMANAGER_HOST=campaignmanager.$FRONTEND" --env="SYS_CAMPAIGNMANAGER_PORT=8827" --env="SYS_LIMITHANDLER_HOST=limithandler.$FRONTEND" --env="SYS_LIMITHANDLER_PORT=8815" --env="SYS_CALLBACKSERVICE_HOST=callbackservice.$FRONTEND" --env="SYS_CALLBACKSERVICE_PORT=8840" --env="SYS_ARDSLITESERVICE_HOST=ardsliteservice.$FRONTEND" --env="SYS_ARDSLITESERVICE_PORT=8828" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND" --env="SYS_NOTIFICATIONSERVICE_PORT=8833" --env="SYS_CLUSTERCONFIGURATION_HOST=clusterconfig.$FRONTEND" --env="SYS_CLUSTERCONFIGURATION_PORT=8805" --env="SYS_FREESWITCH_HOST=$FREESWITCH_HOST" --env="SYS_FS_XMLRPC_PORT=$XMLRPC_PORT" --env="VIRTUAL_HOST=dialerapi.*" --env="LB_FRONTEND=dialerapi.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8836/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dialerapi dialerapi go run *.go;
 
