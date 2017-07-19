@@ -1281,6 +1281,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char* ardsfeatures;
 	char* ardsoutboundfeatures;
 	char* ardsoutivrfeatures;
+	char* agentGreeting;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
@@ -1568,7 +1569,12 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
 			
-			
+			//execute_on_answer=uuid_broadcast 336889f2-1868-11de-81a9-3f4acc8e505e sorry.wav both
+			//switch_core_session_get_uuid(agent_session)
+
+			agentGreeting = switch_mprintf("uuid_broadcast %q sorry.wav both", switch_core_session_get_uuid(agent_session));
+			switch_channel_set_variable(agent_channel, "execute_on_answer", agentGreeting);
+
 			
 			
 			switch_safe_free(ardsfeatures);
@@ -1576,6 +1582,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_safe_free(ardsoutivrfeatures);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 			switch_ivr_uuid_bridge(h->member_session_uuid, switch_core_session_get_uuid(agent_session));
