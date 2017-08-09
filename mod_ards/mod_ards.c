@@ -831,8 +831,8 @@ SWITCH_STANDARD_APP(queue_music_function)
 	if (profile){
 		char tmpurl[1000];
 
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", globals.qurl,profile);
-
+		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/plain/Profile/%s", globals.qurl,profile);
+		//AgentGreeting/:name/:language
 
 
 		switch_core_new_memory_pool(&pool);
@@ -1239,7 +1239,7 @@ SWITCH_STANDARD_APP(ards_function)
 		switch_channel_set_variable_printf(channel, "ards_routed", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "routed");
+			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-routed");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
@@ -1281,6 +1281,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char* ardsfeatures;
 	char* ardsoutboundfeatures;
 	char* ardsoutivrfeatures;
+	//char* agentGreeting;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
 	switch_bind_flag_t bind_flags = 0;
@@ -1290,7 +1291,17 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	int rval = switch_dtmftoi("6");
 	int ival = switch_dtmftoi("9");
 	char start_epoch[64];
-	
+
+	switch_memory_pool_t *pool = NULL;
+	switch_CURL *curl_handle = NULL;
+	http_data_t *http_data = NULL;
+	switch_curl_slist_t *headers = NULL;
+	long httpRes = 0;
+	char *ctn;
+	char *cto;
+	char tmpurl[1000];
+	char music_file_path[1000];
+	time_t when;
 	//bind_flags |= SBF_DIAL_ALEG;
 	
 	bind_flags |= SBF_DIAL_BLEG;
@@ -1328,6 +1339,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		member_channel = switch_core_session_get_channel(member_session);
+		
 
 		if ((p = switch_channel_get_variable(member_channel, "ards_agent_found")) && (agent_found = switch_true(p))) {}
 
@@ -1441,11 +1453,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 
-
-
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 
 		dialstr = switch_channel_expand_variables(member_channel, h->originate_string);
@@ -1467,50 +1475,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			agent_channel = switch_core_session_get_channel(agent_session);
 
 
-			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
-			if (!globals.rurl){
-				if (globals.recordPath) {
-					char *expanded = switch_channel_expand_variables(member_channel, globals.recordPath);
-					switch_channel_set_variable(member_channel, "ards_record_file", expanded);
-
-					switch_ivr_record_session(member_session, expanded, 0, NULL);
-					if (expanded != globals.recordPath) {
-						switch_safe_free(expanded);
-					}
-
-					////////////////////////////////////////upload end of the session////////////////////////////////////////////
-
-
-					if (globals.uurl){
-						char uploaddata[1000];
-						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->resource_name);
-						expandedx = switch_channel_expand_variables(member_channel, uploaddata);
-						switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
-
-						if (expandedx != uploaddata){
-							switch_safe_free(expandedx);
-						}
-					}
-
-				}
-			}
-			else{
-
-
-
-				//////////////////////////////////////////////test webupload ////////////////////////////////////
-				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
-				char uploaddata[1000];
-				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(file=%s.mp3)%s/%s/%s?class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&mediatype=audio&filetype=mp3&sessionid=%s&display=%s-%s", h->member_uuid, globals.rurl, h->tenant, h->company, h->member_uuid, h->member_uuid,caller_number,h->resource_name);
-				switch_ivr_record_session(member_session, uploaddata, 0, NULL);
-				
-				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-			}
 			
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
@@ -1568,18 +1533,164 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
 			
-			
-			
+			//execute_on_answer=uuid_broadcast 336889f2-1868-11de-81a9-3f4acc8e505e sorry.wav both
+			//switch_core_session_get_uuid(agent_session)
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			//agentGreeting = switch_mprintf("uuid_broadcast %q sorry.wav both", switch_core_session_get_uuid(agent_session));
+			//switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, agentGreeting);
+			//switch_channel_set_variable(agent_channel, "execute_on_answer", agentGreeting);
+
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
 			switch_safe_free(ardsfeatures);
 			switch_safe_free(ardsoutboundfeatures);
 			switch_safe_free(ardsoutivrfeatures);
+			//switch_safe_free(agentGreeting);
 
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+
+			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
+			if (!globals.rurl) {
+				if (globals.recordPath) {
+					char *expanded = switch_channel_expand_variables(member_channel, globals.recordPath);
+					switch_channel_set_variable(member_channel, "ards_record_file", expanded);
+
+					switch_ivr_record_session(member_session, expanded, 0, NULL);
+					if (expanded != globals.recordPath) {
+						switch_safe_free(expanded);
+					}
+
+					////////////////////////////////////////upload end of the session////////////////////////////////////////////
+
+
+					if (globals.uurl) {
+						char uploaddata[1000];
+						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->resource_name);
+						expandedx = switch_channel_expand_variables(member_channel, uploaddata);
+						switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
+
+						if (expandedx != uploaddata) {
+							switch_safe_free(expandedx);
+						}
+					}
+
+				}
+			}
+			else {
+
+
+
+				//////////////////////////////////////////////test webupload ////////////////////////////////////
+				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
+				char uploaddata[1000];
+				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(file=%s.mp3)%s/%s/%s?class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&mediatype=audio&filetype=mp3&sessionid=%s&display=%s-%s", h->member_uuid, globals.rurl, h->tenant, h->company, h->member_uuid, h->member_uuid, caller_number, h->resource_name);
+				switch_ivr_record_session(member_session, uploaddata, 0, NULL);
+
+				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+			}
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+			/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			switch_ivr_uuid_bridge(h->member_session_uuid, switch_core_session_get_uuid(agent_session));
 			switch_channel_wait_for_flag(agent_channel, CF_BRIDGED, SWITCH_TRUE, 1000, NULL);
+
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			ctn = switch_mprintf("authorization: Bearer %s", globals.security_token);
+			cto = switch_mprintf("companyinfo: %d:%d", atoi(h->tenant), atoi(h->company));
+
+			switch_core_new_memory_pool(&pool);
+			curl_handle = switch_curl_easy_init();
+
+			http_data = switch_core_alloc(pool, sizeof(http_data_t));
+			memset(http_data, 0, sizeof(http_data_t));
+			http_data->pool = pool;
+
+			http_data->max_bytes = 64000;
+			SWITCH_STANDARD_STREAM(http_data->stream);
+
+
+			switch_snprintf(tmpurl, sizeof(tmpurl), "%s/AgentGreeting/%s/%s", globals.qurl, h->profile_name, switch_channel_get_variable(member_channel, "ards_position_language"));
+
+
+
+			headers = switch_curl_slist_append(headers, ctn);
+			switch_safe_free(ctn);
+
+			headers = switch_curl_slist_append(headers, cto);
+			switch_safe_free(cto);
+
+
+
+
+
+			//struct data_stream dstream = { NULL };
+			switch_curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "GET");
+			//switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPGET, 1);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 15);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+
+			switch_curl_easy_setopt(curl_handle, CURLOPT_URL, tmpurl);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, file_callback);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)http_data);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, header_callback);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)http_data);
+			switch_curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "freeswitch-curl/1.0");
+			switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
+
+			switch_curl_easy_perform(curl_handle);
+			switch_curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpRes);
+			switch_curl_easy_cleanup(curl_handle);
+			switch_curl_slist_free_all(headers);
+
+			if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
+
+				http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
+			}
+
+			http_data->http_response_code = httpRes;
+
+
+
+			if (httpRes == 200) {
+
+				if (!zstr(http_data->stream.data)) {
+
+					char *mydata = strdup(http_data->stream.data);
+					switch_assert(mydata);
+					switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, mydata);
+					//status = switch_ivr_play_file(agent_session, NULL, music_file_path, NULL);
+					//switch_ivr_broadcast(h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
+					when = switch_epoch_time_now(NULL) + 2;
+					switch_ivr_schedule_broadcast(when,h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
+					//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG);
+					//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG | SMF_ECHO_ALEG);
+
+					switch_safe_free(mydata);
+
+				}
+
+			}
+
+
+
+			switch_safe_free(http_data->stream.data);
+
+			if (pool) {
+				switch_core_destroy_memory_pool(&pool);
+			}
+
+
+
 
 			/* Wait until the agent hangup.  This will quit also if the agent transfer the call */
 			while (switch_channel_up(agent_channel) && globals.running) {
