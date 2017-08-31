@@ -1164,5 +1164,24 @@ fi
 cd /usr/src/;
 docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$GO_VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DashboardDataProcessor.${VER[0]}/DashboardDataProcessor" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboarddataprocessor dashboarddataprocessor:$GO_VERSION_TAG go run *.go;
 ;;
+
+ "reportqueryfilters")
+#53
+cd /usr/src/;
+if [ $REPOSITORY = "local" ]; then
+ docker pull $REPOSITORY_IPURL":5000"/"reportqueryfilters:"$VERSION_TAG;
+ docker tag $REPOSITORY_IPURL":5000"/"reportqueryfilters:"$VERSION_TAG "reportqueryfilters:"$VERSION_TAG;
+ docker rmi -f $REPOSITORY_IPURL":5000"/"reportqueryfilters:"$VERSION_TAG;
+elif [ $REPOSITORY = "github" ]; then
+if [ ! -d "DVP-ReportQueryFilters" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ReportQueryFilters.git;
+fi
+cd DVP-ReportQueryFilters;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "reportqueryfilters:"$VERSION_TAG .;
+fi
+cd /usr/src/;
+docker run -d -t --memory="256m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="NODE_CONFIG_DIR=/usr/local/src/reportqueryfilters/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_REPORTQUERYFILTERS_PORT=8846" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="VIRTUAL_HOST=reportqueryfilters.*" --env="LB_FRONTEND=reportqueryfilters.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8846/tcp -p 8846:8846 --log-opt max-size=10m --log-opt max-file=10 --restart=always --name reportqueryfilters reportqueryfilters:$VERSION_TAG node /usr/local/src/reportqueryfilters/app.js;
+;;
 esac
 done
