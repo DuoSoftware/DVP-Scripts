@@ -24,7 +24,14 @@ SERVER_IP=$(ifconfig $REPOSITORY_INTERFACE | grep "inet " | awk -F'[: ]+' '{ pri
 
          service docker stop
          nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock >/dev/null 2>&1 & 
-	 
+		
+		cp enable.conf /etc/registry
+		cp service /etc/init.d/dockerregistry
+		cp service /etc/default/dockerregistry
+		chmod 755 /etc/init.d/dockerregistry
+		chown root:root /etc/init.d/dockerregistry
+		update-rc.d dockerregistry defaults
+		update-rc.d dockerregistry enable
 	 
 		PID=$(pidof dockerd);
 		while [ ! -z "$PID" ]
@@ -46,13 +53,7 @@ SERVER_IP=$(ifconfig $REPOSITORY_INTERFACE | grep "inet " | awk -F'[: ]+' '{ pri
 		fi
 		done
 		
-		cp enable.conf /etc/registry
-		cp service /etc/init.d/dockerregistry
-		cp service /etc/default/dockerregistry
-		chmod 755 /etc/init.d/dockerregistry
-		chown root:root /etc/init.d/dockerregistry
-		update-rc.d dockerregistry defaults
-		update-rc.d dockerregistry enable
+
 
 		 
      fi
