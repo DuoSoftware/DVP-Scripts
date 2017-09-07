@@ -1150,6 +1150,7 @@ docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERS
 "dashboarddataprocessor")
 cd /usr/src/;
 if [ $REPOSITORY = "local" ]; then
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
  docker pull $REPOSITORY_IPURL":5000"/"dashboarddataprocessor:"$VERSION_TAG;
  docker tag $REPOSITORY_IPURL":5000"/"dashboarddataprocessor:"$VERSION_TAG "dashboarddataprocessor:"$VERSION_TAG;
  docker rmi -f $REPOSITORY_IPURL":5000"/"dashboarddataprocessor:"$VERSION_TAG;
@@ -1159,11 +1160,12 @@ if [ ! -d "DVP-DashboardDataProcessor" ]; then
         git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-DashboardDataProcessor.git;
 fi
 cd DVP-DashboardDataProcessor;
-docker build --build-arg VERSION_TAG=$GO_VERSION_TAG -t "dashboarddataprocessor:"$GO_VERSION_TAG .;
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+docker build --build-arg MAJOR_VER=${VER[0]} -t "dashboarddataprocessor:"$GO_VERSION_TAG .;
 #docker build -t "dashboarddataprocessor:latest" .;
 fi
 cd /usr/src/;
-docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$GO_VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-DashboardDataProcessor/DashboardDataProcessor" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboarddataprocessor dashboarddataprocessor:$GO_VERSION_TAG go run *.go;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$GO_VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="GO_CONFIG_DIR=/go/src/gopkg.in/DuoSoftware/DVP-DashboardDataProcessor.${VER[0]}/DashboardDataProcessor" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_IP=$HOST_IP" --env="HOST_VERSION=$HOST_VERSION" --env="SYS_DASHBOARD_REDIS_HOST=$DASHBOARD_REDIS_HOST" --env="SYS_DASHBOARD_REDIS_PORT=$DASHBOARD_REDIS_PORT" --env="SYS_REDIS_DB_DASHBOARD=$REDIS_DB_DASHBOARD" --env="SYS_DASHBOARD_REDIS_PASSWORD=$DASHBOARD_REDIS_PASSWORD" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --log-opt max-size=10m --log-opt max-file=10 --restart=always --name dashboarddataprocessor dashboarddataprocessor:$GO_VERSION_TAG go run *.go;
 ;;
 
  "reportqueryfilters")
