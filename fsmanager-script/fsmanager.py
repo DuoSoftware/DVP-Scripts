@@ -27,7 +27,7 @@ print 'Company Name: '+ ProfileName + ' IP: ' + profileIP
 logging.debug('Company Name: '+ProfileName + ' IP: ' + profileIP)
 
 try:
-	xml_file = "/usr/src/fsmanager/sample.xml"
+	xml_file = "/usr/src/DVP-Scripts/fsmanager/sample.xml"
 	logging.debug('Reading Sample XML file')
 	xml_file_output = '/etc/freeswitch/sip_profiles/' + ProfileName +'.xml'.format(os.path.splitext(xml_file)[0])
 	print 'Creating XML Profile Completed...'
