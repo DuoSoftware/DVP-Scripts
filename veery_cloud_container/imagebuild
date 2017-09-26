@@ -1,0 +1,1012 @@
+#!/bin/bash
+
+. enable.conf
+
+
+DATE=`date +%Y-%m-%d`
+
+IFS=', ' read -r -a array <<< "$DEPLOY";
+
+
+for index in "${!array[@]}"
+do
+ #   echo "$index ${array[index]}"
+
+
+SERVICE=${array[index]}
+
+case "$SERVICE" in
+   "dynamicconfigurationgenerator")
+#1
+cd /usr/src/;
+if [ ! -d "DVP-DynamicConfigurationGenerator" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DynamicConfigurationGenerator.git;
+fi
+cd DVP-DynamicConfigurationGenerator;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "dynamicconfigurationgenerator:"$VERSION_TAG .;
+docker tag dynamicconfigurationgenerator:$VERSION_TAG $REPOSITORY_IPURL:5000/dynamicconfigurationgenerator:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/dynamicconfigurationgenerator:$VERSION_TAG
+
+docker image remove dynamicconfigurationgenerator:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/dynamicconfigurationgenerator:$VERSION_TAG
+
+
+;;
+
+   "resourceservice")
+#2
+cd /usr/src/;
+if [ ! -d "DVP-ResourceService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ResourceService.git;
+fi
+
+cd DVP-ResourceService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "resourceservice:"$VERSION_TAG .;
+
+docker tag  resourceservice:$VERSION_TAG $REPOSITORY_IPURL:5000/resourceservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/resourceservice:$VERSION_TAG
+
+docker image remove resourceservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/resourceservice:$VERSION_TAG
+;;
+   "ardsmonitoring")
+#3
+cd /usr/src/;
+if [ ! -d "DVP-ARDSMonitoring" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ARDSMonitoring.git;
+fi
+
+cd DVP-ARDSMonitoring;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "ardsmonitoring:"$VERSION_TAG .;
+docker tag  ardsmonitoring:$VERSION_TAG $REPOSITORY_IPURL:5000/ardsmonitoring:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/ardsmonitoring:$VERSION_TAG
+
+docker image remove ardsmonitoring:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/ardsmonitoring:$VERSION_TAG
+;;
+   "phonenumbertrunkservice")
+#4
+cd /usr/src/;
+if [ ! -d "DVP-PhoneNumberTrunkService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-PhoneNumberTrunkService.git;
+fi
+
+cd DVP-PhoneNumberTrunkService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "phonenumbertrunkservice:"$VERSION_TAG .;
+docker tag  phonenumbertrunkservice:$VERSION_TAG $REPOSITORY_IPURL:5000/phonenumbertrunkservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/phonenumbertrunkservice:$VERSION_TAG
+
+docker image remove phonenumbertrunkservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/phonenumbertrunkservice:$VERSION_TAG
+
+;;
+ "limithandler")
+#5
+cd /usr/src/;
+if [ ! -d "DVP-LimitHandler" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-LimitHandler.git;
+fi
+
+cd DVP-LimitHandler;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "limithandler:"$VERSION_TAG .;
+
+docker tag  limithandler:$VERSION_TAG $REPOSITORY_IPURL:5000/limithandler:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/limithandler:$VERSION_TAG
+
+docker image remove limithandler:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/limithandler:$VERSION_TAG
+
+
+;;
+   "ardsliteroutingengine")
+#6
+cd /usr/src/;
+if [ ! -d "DVP-ARDSLiteRoutingEngine" ]; then
+	git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-ARDSLiteRoutingEngine.git;
+fi
+
+cd DVP-ARDSLiteRoutingEngine;
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+docker build --build-arg MAJOR_VER=${VER[0]} -t "ardsliteroutingengine:"$GO_VERSION_TAG .;
+
+docker tag  ardsliteroutingengine:$GO_VERSION_TAG $REPOSITORY_IPURL:5000/ardsliteroutingengine:$GO_VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/ardsliteroutingengine:$GO_VERSION_TAG
+
+docker image remove ardsliteroutingengine:$GO_VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/ardsliteroutingengine:$GO_VERSION_TAG
+
+;;
+   "notificationservice")
+#7
+cd /usr/src/;
+if [ ! -d "DVP-NotificationServicee" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-NotificationService.git;
+fi
+
+cd DVP-NotificationService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "notificationservice:"$VERSION_TAG .;
+
+docker tag  notificationservice:$VERSION_TAG $REPOSITORY_IPURL:5000/notificationservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/notificationservice:$VERSION_TAG
+
+docker image remove notificationservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/notificationservice:$VERSION_TAG
+;;
+   "engagementservice")
+#8
+cd /usr/src/;
+if [ ! -d "DVP-Engagement" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Engagement.git;
+fi
+
+cd DVP-Engagement;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "engagementservice:"$VERSION_TAG .;
+
+docker tag  engagementservice:$VERSION_TAG $REPOSITORY_IPURL:5000/engagementservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/engagementservice:$VERSION_TAG
+
+docker image remove engagementservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/engagementservice:$VERSION_TAG
+;;
+   "campaignmanager")
+#9
+cd /usr/src/;
+if [ ! -d "DVP-CampaignManager" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CampaignManager.git;
+fi
+
+cd DVP-CampaignManager;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "campaignmanager:"$VERSION_TAG .;
+
+docker tag  campaignmanager:$VERSION_TAG $REPOSITORY_IPURL:5000/campaignmanager:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/campaignmanager:$VERSION_TAG
+
+docker image remove campaignmanager:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/campaignmanager:$VERSION_TAG
+;;
+   "pbxservice")
+#10
+cd /usr/src/;
+if [ ! -d "DVP-PBXService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-PBXService.git;
+fi
+
+cd DVP-PBXService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "pbxservice:"$VERSION_TAG .;
+
+docker tag  pbxservice:$VERSION_TAG $REPOSITORY_IPURL:5000/pbxservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/pbxservice:$VERSION_TAG
+
+docker image remove pbxservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/pbxservice:$VERSION_TAG
+;;
+   "callbackservice")
+#11
+cd /usr/src/;
+if [ ! -d "DVP-CallBackService" ]; then
+	git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-CallBackService.git;
+fi
+
+cd DVP-CallBackService;
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+docker build --build-arg MAJOR_VER=${VER[0]} -t "callbackservice:"$GO_VERSION_TAG .;
+
+docker tag  callbackservice:$GO_VERSION_TAG $REPOSITORY_IPURL:5000/callbackservice:$GO_VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/callbackservice:$GO_VERSION_TAG
+
+docker image remove callbackservice:$GO_VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/callbackservice:$GO_VERSION_TAG
+
+;;
+   "voxboneapi")
+#12
+cd /usr/src/;
+if [ ! -d "DVP-VoxboneAPI" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-VoxboneAPI.git;
+fi
+
+cd DVP-VoxboneAPI;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "voxboneapi:"$VERSION_TAG .;
+docker tag  VoxboneAPI:$VERSION_TAG $REPOSITORY_IPURL:5000/VoxboneAPI:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/VoxboneAPI:$VERSION_TAG
+
+docker image remove VoxboneAPI:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/VoxboneAPI:$VERSION_TAG
+
+;;
+   "ruleservice")
+#13
+cd /usr/src/;
+if [ ! -d "DVP-RuleService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-RuleService.git;
+fi
+
+cd DVP-RuleService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "ruleservice:"$VERSION_TAG .;
+
+docker tag  ruleservice:$VERSION_TAG $REPOSITORY_IPURL:5000/ruleservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/ruleservice:$VERSION_TAG
+
+docker image remove ruleservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/ruleservice:$VERSION_TAG
+;;
+   "conference")
+#14
+cd /usr/src/;
+if [ ! -d "DVP-Conference" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Conference.git;
+fi
+
+cd DVP-Conference;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "conference:"$VERSION_TAG .;
+
+docker tag  conference:$VERSION_TAG $REPOSITORY_IPURL:5000/conference:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/conference:$VERSION_TAG
+
+docker image remove conference:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/conference:$VERSION_TAG
+;;
+   "httpprogrammingapidebug")
+#15
+cd /usr/src/;
+if [ ! -d "DVP-HTTPProgrammingAPIDEBUG" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-HTTPProgrammingAPIDEBUG.git;
+fi
+
+cd DVP-HTTPProgrammingAPIDEBUG;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "httpprogrammingapidebug:"$VERSION_TAG .;
+
+docker tag  httpprogrammingapidebug:$VERSION_TAG $REPOSITORY_IPURL:5000/httpprogrammingapidebug:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/httpprogrammingapidebug:$VERSION_TAG
+
+docker image remove httpprogrammingapidebug:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/httpprogrammingapidebug:$VERSION_TAG
+;;
+   "interactions")
+#16
+cd /usr/src/;
+if [ ! -d "DVP-Interactions" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Interactions.git;
+fi
+
+cd DVP-Interactions;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "interactions:"$VERSION_TAG .;
+
+docker tag  interactions:$VERSION_TAG $REPOSITORY_IPURL:5000/interactions:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/interactions:$VERSION_TAG
+
+docker image remove interactions:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/interactions:$VERSION_TAG
+
+;;
+   "templates")
+#17
+cd /usr/src/;
+if [ ! -d "DVP-Templates" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Templates.git
+fi
+
+cd DVP-Templates;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "templates:"$VERSION_TAG .;
+
+docker tag  templates:$VERSION_TAG $REPOSITORY_IPURL:5000/templates:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/templates:$VERSION_TAG
+
+docker image remove templates:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/templates:$VERSION_TAG
+
+;;
+   "ardsliteservice")
+#18
+cd /usr/src/;
+if [ ! -d "DVP-ARDSLiteService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ARDSLiteService.git;
+fi
+
+cd DVP-ARDSLiteService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "ardsliteservice:"$VERSION_TAG .;
+
+docker tag  ardsliteservice:$VERSION_TAG $REPOSITORY_IPURL:5000/ardsliteservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/ardsliteservice:$VERSION_TAG
+
+docker image remove ardsliteservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/ardsliteservice:$VERSION_TAG
+;;
+   "userservice")
+#19
+cd /usr/src/;
+if [ ! -d "DVP-UserService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-UserService.git;
+fi
+
+cd DVP-UserService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "userservice:"$VERSION_TAG .;
+
+
+docker tag  userservice:$VERSION_TAG $REPOSITORY_IPURL:5000/userservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/userservice:$VERSION_TAG
+
+docker image remove userservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/userservice:$VERSION_TAG
+;;
+
+   "monitorrestapi")
+#20
+cd /usr/src/;
+if [ ! -d "DVP-MonitorRestAPI" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-MonitorRestAPI.git;
+fi
+
+cd DVP-MonitorRestAPI;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "monitorrestapi:"$VERSION_TAG .;
+
+docker tag  monitorrestapi:$VERSION_TAG $REPOSITORY_IPURL:5000/monitorrestapi:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/monitorrestapi:$VERSION_TAG
+
+docker image remove monitorrestapi:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/monitorrestapi:$VERSION_TAG
+;;
+   "httpprogrammingapi")
+#21-
+cd /usr/src/;
+if [ ! -d "DVP-HTTPProgrammingAPI" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-HTTPProgrammingAPI.git;
+fi
+
+cd DVP-HTTPProgrammingAPI;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "httpprogrammingapi:"$VERSION_TAG .;
+
+docker tag  httpprogrammingapi:$VERSION_TAG $REPOSITORY_IPURL:5000/httpprogrammingapi:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/httpprogrammingapi:$VERSION_TAG
+
+docker image remove httpprogrammingapi:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/httpprogrammingapi:$VERSION_TAG
+;;
+   "sipuserendpointservice")
+#23
+cd /usr/src/;
+if [ ! -d "DVP-SIPUserEndpointService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-SIPUserEndpointService.git;
+fi
+
+cd DVP-SIPUserEndpointService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "sipuserendpointservice:"$VERSION_TAG .;
+
+docker tag  sipuserendpointservice:$VERSION_TAG $REPOSITORY_IPURL:5000/sipuserendpointservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/sipuserendpointservice:$VERSION_TAG
+
+docker image remove sipuserendpointservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/sipuserendpointservice:$VERSION_TAG
+;;
+   "clusterconfig")
+#24
+cd /usr/src/;
+if [ ! -d "DVP-ClusterConfiguration" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ClusterConfiguration.git;
+fi
+
+cd DVP-ClusterConfiguration;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "clusterconfig:"$VERSION_TAG .;
+
+docker tag  clusterconfig:$VERSION_TAG $REPOSITORY_IPURL:5000/clusterconfig:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/clusterconfig:$VERSION_TAG
+
+docker image remove clusterconfig:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/clusterconfig:$VERSION_TAG
+;;
+   "eventmonitor")
+#25
+cd /usr/src/;
+if [ ! -d "DVP-EventMonitor" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-EventMonitor.git;
+fi
+
+cd DVP-EventMonitor;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "eventmonitor:"$VERSION_TAG .;
+
+docker tag  eventmonitor:$VERSION_TAG $REPOSITORY_IPURL:5000/eventmonitor:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/eventmonitor:$VERSION_TAG
+
+docker image remove eventmonitor:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/eventmonitor:$VERSION_TAG
+;;
+   "queuemusic")
+#26
+cd /usr/src/;
+if [ ! -d "DVP-QueueMusic" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-QueueMusic.git;
+fi
+
+cd DVP-QueueMusic;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "queuemusic:"$VERSION_TAG .;
+
+docker tag  queuemusic:$VERSION_TAG $REPOSITORY_IPURL:5000/queuemusic:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/queuemusic:$VERSION_TAG
+
+docker image remove queuemusic:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/queuemusic:$VERSION_TAG
+
+;;
+   "appregistry")
+#27
+cd /usr/src/;
+if [ ! -d "DVP-APPRegistry" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-APPRegistry.git;
+fi
+
+cd DVP-APPRegistry;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "appregistry:"$VERSION_TAG .;
+
+docker tag  appregistry:$VERSION_TAG $REPOSITORY_IPURL:5000/appregistry:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/appregistry:$VERSION_TAG
+
+docker image remove appregistry:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/appregistry:$VERSION_TAG
+
+;;
+   "autoattendant")
+#28
+cd /usr/src/;
+if [ ! -d "DVP-AutoAttendant" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-AutoAttendant.git;
+fi
+
+cd DVP-AutoAttendant;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "autoattendant:"$VERSION_TAG .;
+
+docker tag  autoattendant:$VERSION_TAG $REPOSITORY_IPURL:5000/autoattendant:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/autoattendant:$VERSION_TAG
+
+docker image remove autoattendant:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/autoattendant:$VERSION_TAG
+;;
+   "dialerapi")
+#29
+cd /usr/src/;
+if [ ! -d "DVP-DialerAPI" ]; then
+	git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-DialerAPI.git;
+fi
+
+cd DVP-DialerAPI;
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+docker build --build-arg MAJOR_VER=${VER[0]} -t "dialerapi:"$GO_VERSION_TAG .;
+
+docker tag dialerapi:$GO_VERSION_TAG $REPOSITORY_IPURL:5000/dialerapi:$GO_VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/dialerapi:$GO_VERSION_TAG
+
+docker image remove dialerapi:$GO_VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/dialerapi:$GO_VERSION_TAG
+;;
+   "dashboard")
+#30
+cd /usr/src/;
+if [ ! -d "DVP-DashBoard" ]; then
+	git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-DashBoard.git
+fi
+
+cd DVP-DashBoard;
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+docker build --build-arg MAJOR_VER=${VER[0]} -t "dashboard:"$GO_VERSION_TAG .;
+
+docker tag dashboard:$GO_VERSION_TAG $REPOSITORY_IPURL:5000/dashboard:$GO_VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/dashboard:$GO_VERSION_TAG
+
+docker image remove dashboard:$GO_VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/dashboard:$GO_VERSION_TAG
+;;
+   "cdrprocessor")
+#31
+cd /usr/src/;
+if [ ! -d "DVP-CDRProcessor" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CDRProcessor.git;
+fi
+
+cd DVP-CDRProcessor;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "cdrprocessor:"$VERSION_TAG .;
+
+docker tag cdrprocessor:$GO_VERSION_TAG $REPOSITORY_IPURL:5000/cdrprocessor:$GO_VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/cdrprocessor:$GO_VERSION_TAG
+
+docker image remove cdrprocessor:$GO_VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/cdrprocessor:$GO_VERSION_TAG
+
+;;
+   "eventservice")
+#32
+cd /usr/src/;
+if [ ! -d "DVP-EventService" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-EventService.git
+fi
+
+cd DVP-EventService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "eventservice:"$VERSION_TAG .;
+
+docker tag  eventservice:$VERSION_TAG $REPOSITORY_IPURL:5000/eventservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/eventservice:$VERSION_TAG
+
+docker image remove eventservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/eventservice:$VERSION_TAG
+
+
+;;
+   "liteticket")
+#33
+cd /usr/src/;
+if [ ! -d "DVP-LiteTicket" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-LiteTicket.git
+fi
+
+cd DVP-LiteTicket;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "liteticket:"$VERSION_TAG .;
+
+docker tag  liteticket:$VERSION_TAG $REPOSITORY_IPURL:5000/liteticket:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/liteticket:$VERSION_TAG
+
+docker image remove liteticket:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/liteticket:$VERSION_TAG
+
+
+;;
+   "httpprogrammingmonitorapi")
+#34
+cd /usr/src/;
+if [ ! -d "DVP-HTTPProgrammingMonitorAPI" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-HTTPProgrammingMonitorAPI.git;
+fi
+
+cd DVP-HTTPProgrammingMonitorAPI;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "httpprogrammingmonitorapi:"$VERSION_TAG .;
+
+docker tag  httpprogrammingmonitorapi:$VERSION_TAG $REPOSITORY_IPURL:5000/httpprogrammingmonitorapi:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/httpprogrammingmonitorapi:$VERSION_TAG
+
+docker image remove httpprogrammingmonitorapi:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/httpprogrammingmonitorapi:$VERSION_TAG
+;;
+
+   "scheduleworker")
+ #35
+cd /usr/src/;
+if [ ! -d "DVP-ScheduleWorker" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ScheduleWorker.git
+fi
+cd DVP-ScheduleWorker;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "scheduleworker:"$VERSION_TAG .;
+
+docker tag  scheduleworker:$VERSION_TAG $REPOSITORY_IPURL:5000/scheduleworker:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/scheduleworker:$VERSION_TAG
+
+docker image remove scheduleworker:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/scheduleworker:$VERSION_TAG
+;;
+
+ "fileservice")
+#36
+cd /usr/src/;
+if [ ! -d "DVP-FileService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-FileService.git;
+fi
+cd DVP-FileService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "fileservice:"$VERSION_TAG .;
+
+docker tag  fileservice:$VERSION_TAG $REPOSITORY_IPURL:5000/fileservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/fileservice:$VERSION_TAG
+
+docker image remove fileservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/fileservice:$VERSION_TAG
+
+;;
+   "cdrgenerator")
+#37
+cd /usr/src/;
+if [ ! -d "DVP-CDRGenerator" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CDRGenerator.git;
+fi
+
+cd DVP-CDRGenerator;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "cdrgenerator:"$VERSION_TAG .;
+
+docker tag  cdrgenerator:$VERSION_TAG $REPOSITORY_IPURL:5000/cdrgenerator:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/cdrgenerator:$VERSION_TAG
+
+docker image remove cdrgenerator:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/cdrgenerator:$VERSION_TAG
+;;
+
+ "productivityservice")
+#38
+cd /usr/src/;
+if [ ! -d "DVP-ProductivityService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ProductivityService.git;
+fi
+cd DVP-ProductivityService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "productivityservice:"$VERSION_TAG .;
+
+docker tag  productivityservice:$VERSION_TAG $REPOSITORY_IPURL:5000/productivityservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/productivityservice:$VERSION_TAG
+
+docker image remove productivityservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/productivityservice:$VERSION_TAG
+;;
+ "mailreceiver")
+#39
+cd /usr/src/;
+if [ ! -d "DVP-MailReceiver" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-MailReceiver.git;
+fi
+cd DVP-MailReceiver;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "mailreceiver:"$VERSION_TAG .;
+
+docker tag  mailreceiver:$VERSION_TAG $REPOSITORY_IPURL:5000/mailreceiver:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/mailreceiver:$VERSION_TAG
+
+docker image remove mailreceiver:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/mailreceiver:$VERSION_TAG
+;;
+
+ "socialconnector")
+#40
+cd /usr/src/;
+if [ ! -d "DVP-SocialConnector" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-SocialConnector.git;
+fi
+cd DVP-SocialConnector;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "socialconnector:"$VERSION_TAG .;
+
+docker tag  socialconnector:$VERSION_TAG $REPOSITORY_IPURL:5000/socialconnector:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/socialconnector:$VERSION_TAG
+
+docker image remove socialconnector:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/socialconnector:$VERSION_TAG
+;;
+
+ "todolistservice")
+#41
+cd /usr/src/;
+if [ ! -d "DVP-ToDoListService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ToDoListService.git;
+fi
+cd DVP-ToDoListService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "todolistservice:"$VERSION_TAG .;
+
+docker tag  todolistservice:$VERSION_TAG $REPOSITORY_IPURL:5000/todolistservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/todolistservice:$VERSION_TAG
+
+docker image remove todolistservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/todolistservice:$VERSION_TAG
+;;
+
+ "walletservice")
+#42
+cd /usr/src/;
+if [ ! -d "DVP-Wallet" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Wallet.git;
+fi
+cd DVP-Wallet;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "walletservice:"$VERSION_TAG .;
+
+docker tag  walletservice:$VERSION_TAG $REPOSITORY_IPURL:5000/walletservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/walletservice:$VERSION_TAG
+
+docker image remove walletservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/walletservice:$VERSION_TAG
+;;
+
+ "billingservice")
+#43
+cd /usr/src/;
+if [ ! -d "DVP-Billing" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Billing.git;
+fi
+cd DVP-Billing;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "billingservice:"$VERSION_TAG .;
+
+docker tag  billingservice:$VERSION_TAG $REPOSITORY_IPURL:5000/billingservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/billingservice:$VERSION_TAG
+
+docker image remove billingservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/billingservice:$VERSION_TAG
+
+;;
+
+
+ "integrationapi")
+#44
+cd /usr/src/;
+if [ ! -d "DVP-IntegrationAPI" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-IntegrationAPI.git;
+fi
+cd DVP-IntegrationAPI;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "integrationapi:"$VERSION_TAG .;
+
+docker tag  integrationapi:$VERSION_TAG $REPOSITORY_IPURL:5000/integrationapi:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/integrationapi:$VERSION_TAG
+
+docker image remove integrationapi:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/integrationapi:$VERSION_TAG
+;;
+
+ "dashboardservice")
+#45
+cd /usr/src/;
+if [ ! -d "DVP-DashBoardService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DashBoardService.git;
+fi
+cd DVP-DashBoardService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "dashboardservice:"$VERSION_TAG .;
+
+docker tag  dashboardservice:$VERSION_TAG $REPOSITORY_IPURL:5000/dashboardservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/dashboardservice:$VERSION_TAG
+
+docker image remove dashboardservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/dashboardservice:$VERSION_TAG
+;;
+
+
+ "qamodule")
+#46
+cd /usr/src/;
+if [ ! -d "DVP-QAModule" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-QAModule.git;
+fi
+cd DVP-QAModule;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "qamodule:"$VERSION_TAG .;
+
+docker tag  qamodule:$VERSION_TAG $REPOSITORY_IPURL:5000/qamodule:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/qamodule:$VERSION_TAG
+
+docker image remove qamodule:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/qamodule:$VERSION_TAG
+;;
+
+ "csatservice")
+#47
+cd /usr/src/;
+if [ ! -d "DVP-CSATService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CSATService.git;
+fi
+cd DVP-CSATService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "csatservice:"$VERSION_TAG .;
+
+docker tag  csatservice:$VERSION_TAG $REPOSITORY_IPURL:5000/csatservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/csatservice:$VERSION_TAG
+
+docker image remove csatservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/csatservice:$VERSION_TAG
+;;
+
+ "diameterrelay")
+#48
+cd /usr/src/;
+if [ ! -d "DVP-DiameterRelay" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DiameterRelay.git;
+fi
+cd DVP-DiameterRelay;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "diameterrelay:"$VERSION_TAG .;
+
+docker tag  diameterrelay:$VERSION_TAG $REPOSITORY_IPURL:5000/diameterrelay:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/diameterrelay:$VERSION_TAG
+
+docker image remove diameterrelay:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/diameterrelay:$VERSION_TAG
+;;
+
+
+ "diameterclient")
+#49
+cd /usr/src/;
+if [ ! -d "DVP-DiameterClient" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DiameterClient.git;
+fi
+cd DVP-DiameterClient;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "diameterclient:"$VERSION_TAG .;
+
+docker tag  diameterclient:$VERSION_TAG $REPOSITORY_IPURL:5000/diameterclient:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/diameterclient:$VERSION_TAG
+
+docker image remove diameterclient:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/diameterclient:$VERSION_TAG
+;;
+
+ "ipmessagingservice")
+#50
+cd /usr/src/;
+if [ ! -d "DVP-IPMessagingService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-IPMessagingService.git;
+fi
+cd DVP-IPMessagingService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "ipmessagingservice:"$VERSION_TAG .;
+
+docker tag  ipmessagingservice:$VERSION_TAG $REPOSITORY_IPURL:5000/ipmessagingservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/ipmessagingservice:$VERSION_TAG
+
+docker image remove ipmessagingservice:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/ipmessagingservice:$VERSION_TAG
+;;
+
+ "diameterserver")
+#51
+cd /usr/src/;
+if [ ! -d "DVP-DiameterServer" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DiameterServer.git;
+fi
+cd DVP-DiameterServer;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "diameterserver:"$VERSION_TAG .;
+
+docker tag  diameterserver:$VERSION_TAG $REPOSITORY_IPURL:5000/diameterserver:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/diameterserver:$VERSION_TAG
+
+docker image remove diameterserver:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/diameterserver:$VERSION_TAG
+;;
+
+ "skypebot")
+#52
+cd /usr/src/;
+if [ ! -d "DVP-SkypeBot" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-SkypeBot.git;
+fi
+cd DVP-SkypeBot;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "skypebot:"$VERSION_TAG .;
+
+docker tag  skypebot:$VERSION_TAG $REPOSITORY_IPURL:5000/skypebot:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/skypebot:$VERSION_TAG
+
+docker image remove skypebot:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/skypebot:$VERSION_TAG
+;;
+
+ "contacts")
+#53
+cd /usr/src/;
+if [ ! -d "DVP-Contacts" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-Contacts.git;
+fi
+cd DVP-Contacts;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "contacts:"$VERSION_TAG .;
+
+docker tag  contacts:$VERSION_TAG $REPOSITORY_IPURL:5000/contacts:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/contacts:$VERSION_TAG
+
+docker image remove contacts:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/contacts:$VERSION_TAG
+;;
+
+  "crmintegrations")
+#54
+cd /usr/src/;
+if [ ! -d "DVP-CRMIntegrations" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CRMIntegrations.git;
+fi
+
+cd DVP-CRMIntegrations;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "crmintegrations:"$VERSION_TAG .;
+
+docker tag  crmintegrations:$VERSION_TAG $REPOSITORY_IPURL:5000/crmintegrations:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/crmintegrations:$VERSION_TAG
+
+docker image remove crmintegrations:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/crmintegrations:$VERSION_TAG
+;;
+
+ "carrierprovider")
+#5
+cd /usr/src/;
+if [ ! -d "DVP-CarrierProvider" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-CarrierProvider.git;
+fi
+
+cd DVP-CarrierProvider;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "carrierprovider:"$VERSION_TAG .;
+
+docker tag  carrierprovider:$VERSION_TAG $REPOSITORY_IPURL:5000/carrierprovider:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/carrierprovider:$VERSION_TAG
+
+docker image remove carrierprovider:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/carrierprovider:$VERSION_TAG
+;;
+
+"agentdialerservice")
+#45
+cd /usr/src/;
+if [ ! -d "DVP-AgentDialerService" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-AgentDialerService.git;
+fi
+cd DVP-AgentDialerService;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "agentdialerservice:"$VERSION_TAG .;
+
+docker tag  agentdialerservice:$VERSION_TAG $REPOSITORY_IPURL:5000/agentdialerservice:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/agentdialerservice:$VERSION_TAG
+
+#docker image remove agentdialerservice:$VERSION_TAG
+#docker image remove $REPOSITORY_IPURL:5000/agentdialerservice:$VERSION_TAG
+
+;;
+
+"filearchiveservice")
+#29
+cd /usr/src/;
+if [ ! -d "DVP-FileArchiveService" ]; then
+	git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-FileArchiveService.git;
+fi
+cd DVP-FileArchiveService;
+docker build --build-arg MAJOR_VER=${VER[0]} -t "filearchiveservice:"$VERSION_TAG .;
+
+docker tag  filearchiveservice:$GO_VERSION_TAG $REPOSITORY_IPURL:5000/filearchiveservice:$GO_VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/filearchiveservice:$GO_VERSION_TAG
+
+docker image remove filearchiveservice:$GO_VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/filearchiveservice:$GO_VERSION_TAG
+;;
+
+ "smppclient")
+#53
+cd /usr/src/;
+if [ ! -d "DVP-SMPPClient" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-SMPPClient.git;
+fi
+cd DVP-SMPPClient;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "smppclient:"$VERSION_TAG .;
+
+docker tag  smppclient:$VERSION_TAG $REPOSITORY_IPURL:5000/smppclient:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/smppclient:$VERSION_TAG
+
+docker image remove smppclient:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/smppclient:$VERSION_TAG
+;;
+
+ "dashboarddataprocessor")
+#54
+cd /usr/src/;
+if [ ! -d "DVP-DVP-DashboardDataProcessor" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-DVP-DashboardDataProcessor.git;
+fi
+cd DVP-DVP-DashboardDataProcessor;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "dashboarddataprocessor:"$VERSION_TAG .;
+
+docker tag  dashboarddataprocessor:$VERSION_TAG $REPOSITORY_IPURL:5000/dashboarddataprocessor:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/dashboarddataprocessor:$VERSION_TAG
+
+docker image remove dashboarddataprocessor:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/dashboarddataprocessor:$VERSION_TAG
+;;
+
+"reportqueryfilters")
+#53
+cd /usr/src/;
+if [ ! -d "DVP-ReportQueryFilters" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ReportQueryFilters.git;
+fi
+cd DVP-ReportQueryFilters;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "reportqueryfilters:"$VERSION_TAG .;
+
+docker tag  reportqueryfilters:$VERSION_TAG $REPOSITORY_IPURL:5000/reportqueryfilters:$VERSION_TAG
+docker push $REPOSITORY_IPURL:5000/reportqueryfilters:$VERSION_TAG
+
+docker image remove reportqueryfilters:$VERSION_TAG
+docker image remove $REPOSITORY_IPURL:5000/reportqueryfilters:$VERSION_TAG
+;;
+
+esac
+done

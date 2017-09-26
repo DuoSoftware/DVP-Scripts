@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#. params.conf
+. enable.conf
+SERVER_IP=$(ifconfig $REPOSITORY_INTERFACE | grep "inet " | awk -F'[: ]+' '{ print $4 }')
+
+     sudo apt-get update
+     sudo apt-get install curl -y
+     curl -sSL https://get.docker.com/ | sh
+     curl -sSL https://get.docker.com/gpg | sudo apt-key add -
+	 
+
+
+     if [ $REPOSITORY = "github" ]; then
+  
+         service docker restart
+         docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/localtime:/etc/localtime:ro --log-opt max-size=10m --restart=always --log-opt max-file=10 jwilder/nginx-proxy
+         sudo apt-get install git -y
+		 
+     fi
+
+
+     if [ $REPOSITORY = "local" ]; then
+
+         service docker stop
+         nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock >/dev/null 2>&1 & 
+		
+		cp enable.conf /etc/registry
+		cp service /etc/init.d/dockerregistry
+		cp service /etc/default/dockerregistry
+		chmod 755 /etc/init.d/dockerregistry
+		chown root:root /etc/init.d/dockerregistry
+		update-rc.d dockerregistry defaults
+		update-rc.d dockerregistry enable
+	 
+		PID=$(pidof dockerd);
+		while [ ! -z "$PID" ]
+		do
+		if [ ! -z "$PID" ];then
+				
+			if [ $SERVER_IP = $REPOSITORY_IPURL ]; then
+			 
+				docker run -d --restart=always -v /var/lib/registry:/var/lib/registry -p 5000:5000 --name containerrepo registry:latest
+				 
+			else
+
+				docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/localtime:/etc/localtime:ro --log-opt max-size=10m --restart=always --log-opt max-file=10  --name nginxproxy jwilder/nginx-proxy
+				 
+				 #docker run -d --restart=always -v /var/lib/registry:/var/lib/registry -p 5000:5000 --name containerrepo registry:latest
+		 
+			fi 
+			exit 1;
+		fi
+		done
+		
+
+
+		 
+     fi

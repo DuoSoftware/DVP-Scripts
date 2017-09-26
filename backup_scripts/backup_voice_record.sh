@@ -16,7 +16,7 @@ DIR=$(date +%Y-%m-%d);
 #echo $DIR;
 mkdir $DIR;
 chmod +x $DIR;
-cp $SRC_DIR/* $DST_DIR/$DIR;
+mv $SRC_DIR/* $DST_DIR/$DIR;
 
 YESTERDAYDIR=$(date -d "1 day ago" +%F);
 tar -zcf $YESTERDAYDIR.tar.gz $YESTERDAYDIR;
