@@ -1,5 +1,5 @@
 #!/bin/bash
-. enable.conf
+. /etc/registry
 startservice() {
 service docker stop
 nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock &
