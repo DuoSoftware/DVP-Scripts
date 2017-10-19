@@ -41,7 +41,7 @@ SERVER_IP=$(ifconfig $REPOSITORY_INTERFACE | grep "inet " | awk -F'[: ]+' '{ pri
 				
 			done
 		nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock & 
-		
+		sleep 15;
 		pid=$(pidof dockerd);
 		while [ -z "$pid" ]
 			do
