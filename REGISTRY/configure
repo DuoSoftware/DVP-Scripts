@@ -41,7 +41,15 @@ SERVER_IP=$(ifconfig $REPOSITORY_INTERFACE | grep "inet " | awk -F'[: ]+' '{ pri
 				
 			done
 		nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock & 
-	 
+		
+		pid=$(pidof dockerd);
+		while [ -z "$pid" ]
+			do
+
+				pid=$(pidof dockerd);
+				
+			done
+			
 	     if [ $SERVER_IP = $REPOSITORY_IPURL ]; then
 		 
              docker run -d --restart=always -v /var/lib/registry:/var/lib/registry -p 5000:5000 --name containerrepo registry:latest
