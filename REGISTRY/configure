@@ -31,7 +31,16 @@ SERVER_IP=$(ifconfig $REPOSITORY_INTERFACE | grep "inet " | awk -F'[: ]+' '{ pri
 		update-rc.d dockerregistry enable
 	 
          service docker stop
-         nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock & 
+		 retval=$(pidof dockerd)
+		 while [ $retval -ne 0 ]
+			do
+				if [ $retval -ne 0 ];then
+				kill $retval
+				retval=$( getpid );
+				fi
+
+			done
+		nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock & 
 	 
 	     if [ $SERVER_IP = $REPOSITORY_IPURL ]; then
 		 
