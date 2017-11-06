@@ -1,32 +1,35 @@
 #!/bin/bash
-MONTHS=10;
-SRC_DIR="/path/to/recordings/directory";
-DST_DIR="/path/to/backup/directory";
+#
+# Freeswitch Voice Clip backup-script
+# run on crontab set time 23:59
+#
+DAYS_TO_KEEP=1
+INBOUND_SRC_DIR=/usr/src/recordings-inbound
+OUTBOUND_SRC_DIR=/usr/src/recordings-outbound
+INBOUND_BACKUP_DIR=/usr/src/backup-inbound
+OUTBOUND_BACKUP_DIR=/usr/src/backup-outbound
 
-while [ false ]; do
- sleep 60
-#num++;
-TIME=$(date +"%H:%M");
-#echo $TIME;
-if [ "$TIME" == "23.59" ];then
-#echo "BBBB";
+DIR=$(date +%Y-%m-%d)
 
-cd $DST_DIR/;
-DIR=$(date +%Y-%m-%d);
-#echo $DIR;
-mkdir $DIR;
-chmod +x $DIR;
-mv $SRC_DIR/* $DST_DIR/$DIR;
+mkdir -p ${INBOUND_BACKUP_DIR}/${DIR}
+mkdir -p ${OUTBOUND_BACKUP_DIR}/${DIR}
+
+OUTPUT_INBOUND=${INBOUND_BACKUP_DIR}/${DIR}
+OUTPUT_OUTBOUND=${OUTBOUND_BACKUP_DIR}/${DIR}
+
+
+mv $INBOUND_SRC_DIR/* $OUTPUT_INBOUND
+mv $OUTBOUND_SRC_DIR/* $OUTPUT_OUTBOUND
+
 
 YESTERDAYDIR=$(date -d "1 day ago" +%F);
-tar -zcf $YESTERDAYDIR.tar.gz $YESTERDAYDIR;
-rm -rf $YESTERDAYDIR;
+cd ${INBOUND_BACKUP_DIR}
+tar -zcf ${YESTERDAYDIR}.tar.gz $YESTERDAYDIR
+rm -rf ${YESTERDAYDIR}
 
-OLDDIR=$(date -d "$MONTHS month ago" +%F);
-OLDFILE=$OLDDIR.tar.gz;
-rm -rf $OLDFILE;
-#echo $OLDDIR;
+cd ${OUTBOUND_BACKUP_DIR}
+tar -zcf ${YESTERDAYDIR}.tar.gz ${YESTERDAYDIR}
+rm -rf ${YESTERDAYDIR}
 
-fi
-done;
-
+find $INBOUND_BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*.tar.gz" -exec rm -rf '{}' ';'
+find $OUTBOUND_BACKUP_DIR -maxdepth 1 -mtime +$DAYS_TO_KEEP -name "*.tar.gz" -exec rm -rf '{}' ';'

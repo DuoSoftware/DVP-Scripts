@@ -124,7 +124,6 @@ typedef enum {
 	ARDS_REPEAT_POSITION_ANNOUNCEMENT = 4
 } ards_moh_step;
 
-
 switch_time_t local_epoch_time_now(switch_time_t *t)
 {
 	switch_time_t now = switch_micro_time_now() / 1000000; /* APR_USEC_PER_SEC */
@@ -173,7 +172,8 @@ static switch_status_t load_config(void)
 
 			if (!strcasecmp(var, "debug")) {
 				globals.debug = atoi(val);
-			}else if (!strcasecmp(var, "url")) {
+			}
+			else if (!strcasecmp(var, "url")) {
 				globals.url = strdup(val);
 			}
 			else if (!strcasecmp(var, "record-format")) {
@@ -206,12 +206,12 @@ static switch_status_t load_config(void)
 			}
 			else if (!strcasecmp(var, "serverid")) {
 				globals.id = strdup(val);
-			}			
+			}
 
-		
+
 		}
 	}
-	
+
 
 end:
 	switch_mutex_unlock(globals.mutex);
@@ -255,7 +255,7 @@ static size_t file_callback(void *ptr, size_t size, size_t nmemb, void *data)
 	return realsize;
 }
 
-static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason, int company, int tenant){
+static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason, int company, int tenant) {
 
 	const char *url = globals.url;
 	switch_memory_pool_t *pool = NULL;
@@ -264,7 +264,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 
-	char tmpurl[1000];
+	char *tmpurl;
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
 	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
 
@@ -278,42 +278,42 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	http_data->max_bytes = 64000;
 	SWITCH_STANDARD_STREAM(http_data->stream);
 
-	switch (type){
+
+
+	switch (type) {
 	case ARDS_COMPLETED:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/%s", url, uuid,"NONE");
+		tmpurl = switch_mprintf( "%s/%s/%s", url, uuid, "NONE");
 		break;
 
 	case ARDS_REMOVE:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/%s", url, uuid,"NONE");
+		tmpurl = switch_mprintf("%s/%s/%s", url, uuid, "NONE");
 		break;
 
 	case ARDS_EXPIRE:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/reject/%s", url, uuid, "NoSession");
+		tmpurl = switch_mprintf("%s/%s/reject/%s", url, uuid, "NoSession");
 		break;
 
 	case ARDS_REJECTED:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/reject/%s", url,uuid,"AgentRejected");
+		tmpurl = switch_mprintf("%s/%s/reject/%s", url, uuid, "AgentRejected");
 		break;
 
 	case ARDS_RING_REJECTED:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s/reject/%s", url, uuid, "ClientRejected");
+		tmpurl = switch_mprintf("%s/%s/reject/%s", url, uuid, "ClientRejected");
 		break;
 
 	default:
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s", url);
-
+		tmpurl = switch_mprintf("%s", url);
 		break;
-		
 	}
 
 
-	
+
 	headers = switch_curl_slist_append(headers, ctx);
 	switch_safe_free(ctx);
 
 	headers = switch_curl_slist_append(headers, cto);
 	switch_safe_free(cto);
-	
+
 
 
 
@@ -324,7 +324,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	switch_curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 15);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-	
+
 	switch_curl_easy_setopt(curl_handle, CURLOPT_URL, tmpurl);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 	switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, file_callback);
@@ -347,6 +347,11 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	http_data->http_response_code = httpRes;
 
 	switch_safe_free(http_data->stream.data);
+	switch_safe_free(tmpurl);
+
+	if (http_data && http_data->headers) {
+		switch_curl_slist_free_all(http_data->headers);
+	}
 
 	if (pool) {
 		switch_core_destroy_memory_pool(&pool);
@@ -356,7 +361,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 }
 
-static void add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority ){
+static switch_status_t add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority) {
 
 	const char *url = globals.url;
 	switch_memory_pool_t *pool = NULL;
@@ -366,11 +371,12 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	//const char *data = NULL;
 	//switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
+	switch_status_t status = SWITCH_STATUS_SUCCESS;
 	cJSON *jdata;
 	cJSON *a;
 
 	//char tmpurl[1000];
-	char msg[1000];
+	//char *msg;
 	char *p = "{}";
 
 	cJSON *cj, *cjp, *cjr;
@@ -392,11 +398,11 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	int argc = 0;
 
 	if (!zstr(skill) && (mycmd = strdup(skill))) {
-		argc = switch_split(mycmd, ',', argv);	
+		argc = switch_split(mycmd, ',', argv);
 	}
 
 
-	for (int i = 0; i < argc; i++){
+	for (int i = 0; i < argc; i++) {
 		strings[i] = (const char*)argv[i];
 	}
 
@@ -412,9 +418,9 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	SWITCH_STANDARD_STREAM(http_data->stream);
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/add", url);
 
-	switch_snprintf(msg, sizeof(msg), "%s|%d|%d|%s", uuid, company, tenant, skill);
+	//msg = switch_mprintf("%s|%d|%d|%s", uuid, company, tenant, skill);
 
-	
+
 	jdata = cJSON_CreateObject();
 	cJSON_AddNumberToObject(jdata, "Company", company);
 	cJSON_AddNumberToObject(jdata, "Tenant", tenant);
@@ -425,13 +431,13 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	cJSON_AddStringToObject(jdata, "RequestServerId", globals.id);
 	cJSON_AddStringToObject(jdata, "Priority", priority);
 	cJSON_AddStringToObject(jdata, "OtherInfo", "");
-	
+
 
 
 	a = cJSON_CreateStringArray(strings, argc);
 	//cJSON_AddItemToArray(a, skill);
 	cJSON_AddItemToObject(jdata, "Attributes", a);
-	
+
 	p = cJSON_Print(jdata);
 
 	/*
@@ -450,9 +456,6 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	}
 
 	*/
-
-
-
 	//struct data_stream dstream = { NULL };
 
 	//switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, strlen(msg));
@@ -461,7 +464,7 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, strlen(p));
 	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, (void *)p);
 
-	
+
 	headers = switch_curl_slist_append(headers, ct);
 	headers = switch_curl_slist_append(headers, ctx);
 	headers = switch_curl_slist_append(headers, cto);
@@ -489,80 +492,95 @@ static void add_ards(int company, int tenant, const char* skill, const char *uui
 	switch_curl_easy_cleanup(curl_handle);
 	switch_curl_slist_free_all(headers);
 
-	if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
 
-		http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
-		if ((cj = cJSON_Parse(http_data->http_response))) {
+	if (httpRes == 200) {
+
+		if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
+
+			http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
+			if ((cj = cJSON_Parse(http_data->http_response))) {
 
 
-			for (cjp = cj->child; cjp; cjp = cjp->next) {
-				char *name = cjp->string;
-				char *value = cjp->valuestring;
+				for (cjp = cj->child; cjp; cjp = cjp->next) {
+					char *name = cjp->string;
+					//char *value = cjp->valuestring;
 
-				if (!value) {
+					if (name) {
 
-					if (!strcasecmp(name, "Result") && cjp->type == cJSON_Object) {
+						if (!strcasecmp(name, "Result") && cjp->type == cJSON_Object) {
 
-						for (cjr = cjp->child; cjr; cjr = cjr->next) {
+							for (cjr = cjp->child; cjr; cjr = cjr->next) {
 
-							char *namex = cjr->string;
+								char *namex = cjr->string;
 
-							if (!strcasecmp(namex, "Position")) {
+								if (!strcasecmp(namex, "Position")) {
 
-								int valuex = cjr->valueint;
-								switch_channel_set_variable_printf(channel, "ards_queue_position", "%d", valuex);
+									int valuex = cjr->valueint;
+									switch_channel_set_variable_printf(channel, "ards_queue_position", "%d", valuex);
+								}
+								else if (!strcasecmp(namex, "QueueName")) {
+
+									char *valuex = cjp->valuestring;
+									switch_channel_set_variable(channel, "ards_skill_display", valuex);
+								}
 							}
+						}
+						else if (!strcasecmp(name, "isSuccess") && cjp->type == cJSON_False) {
+							status = SWITCH_STATUS_FALSE;
 						}
 					}
 				}
 			}
+
+
+			http_data->http_response_code = httpRes;
+
+			switch_safe_free(http_data->stream.data);
+
+			if (http_data && http_data->headers) {
+				switch_curl_slist_free_all(http_data->headers);
+			}
+
+			if (pool) {
+				switch_core_destroy_memory_pool(&pool);
+			}
+
+			switch_safe_free(p);
+			cJSON_Delete(jdata);
+			jdata = NULL;
+
+			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
+				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+				switch_event_fire(&event);
+			}
+
+			cJSON_Delete(cj);
+		}
+		else {
+			status = SWITCH_STATUS_FALSE;
 		}
 
 
-		http_data->http_response_code = httpRes;
+	}else {
 
-		switch_safe_free(http_data->stream.data);
-
-		if (pool) {
-			switch_core_destroy_memory_pool(&pool);
-		}
-
-
-
-		switch_safe_free(p);
-		cJSON_Delete(jdata);
-		jdata = NULL;
-
-
-
-
-		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
-			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
-			switch_event_fire(&event);
-		}
-
-
-
-
-		cJSON_Delete(cj);
+		status = SWITCH_STATUS_FALSE;
 	}
-
+	
 	switch_safe_free(com);
 	switch_safe_free(ten);
 	switch_safe_free(mycmd);
-	
 
-
+	return status;
 }
 
-static void send_notification(const char* event, const char* uuid, int company, int tenant, const char* resourceid, const char *message){
+static void send_notification(const char* event, const char* uuid, int company, int tenant, const char* resourceid, const char *message) {
 
 	const char *url = globals.nurl;
 	switch_memory_pool_t *pool = NULL;
@@ -573,22 +591,20 @@ static void send_notification(const char* event, const char* uuid, int company, 
 	//switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 	cJSON *jdata;
-//	cJSON *a;
+	//	cJSON *a;
 
 	//char tmpurl[1000];
-//	char msg[1000];
+	//	char msg[1000];
 	char *p = "{}";
 
 	char *ct = switch_mprintf("Content-Type: %s", "application/json");
 	char *cto = switch_mprintf("companyinfo: %d:%d", tenant, company);
 	char *ctx = switch_mprintf("authorization: Bearer %s", globals.security_token);
-
 	char *cev = switch_mprintf("eventname: %s", event);
-
 	char *cuuid = switch_mprintf("eventuuid: %s", uuid);
 
 
-//	switch_event_t *event;
+	//	switch_event_t *event;
 
 	switch_core_new_memory_pool(&pool);
 	curl_handle = switch_curl_easy_init();
@@ -600,10 +616,6 @@ static void send_notification(const char* event, const char* uuid, int company, 
 	http_data->max_bytes = 64000;
 	SWITCH_STANDARD_STREAM(http_data->stream);
 
-
-
-
-
 	jdata = cJSON_CreateObject();
 	cJSON_AddStringToObject(jdata, "To", resourceid);
 	cJSON_AddNumberToObject(jdata, "Timeout", 1000);
@@ -611,13 +623,7 @@ static void send_notification(const char* event, const char* uuid, int company, 
 	cJSON_AddStringToObject(jdata, "Message", message);
 	cJSON_AddStringToObject(jdata, "From", "CALLSERVER");
 	cJSON_AddStringToObject(jdata, "Callback", "");
-
-
-
 	p = cJSON_Print(jdata);
-
-
-
 	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, strlen(p));
 	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, (void *)p);
 
@@ -658,24 +664,22 @@ static void send_notification(const char* event, const char* uuid, int company, 
 	}
 
 	http_data->http_response_code = httpRes;
-
 	switch_safe_free(http_data->stream.data);
+
+	if (http_data && http_data->headers) {
+		switch_curl_slist_free_all(http_data->headers);
+	}
 
 	if (pool) {
 		switch_core_destroy_memory_pool(&pool);
 	}
 
-
-
 	switch_safe_free(p);
 	cJSON_Delete(jdata);
 	jdata = NULL;
-
-
-
 }
 
-static void register_ards(int company, int tenant){
+static void register_ards(int company, int tenant) {
 
 	//const char *url = globals.url;
 	const char *registerurl = globals.registerurl;
@@ -689,9 +693,9 @@ static void register_ards(int company, int tenant){
 	cJSON *jdata;
 
 	//char tmpurl[1000];
-	char msg[1000];
-	char callback[1000];
-	char queue_position_url[1000];
+	//char *msg;
+	char *callback;
+	char *queue_position_url;
 
 	char *p = "{}";
 
@@ -710,9 +714,9 @@ static void register_ards(int company, int tenant){
 
 
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/add", registerurl);
-	switch_snprintf(callback, sizeof(callback), "%s/ards_route", globals.rpc_url);
-	switch_snprintf(queue_position_url, sizeof(queue_position_url), "%s/ards_position", globals.rpc_url);
-	
+	callback = switch_mprintf( "%s/ards_route", globals.rpc_url);
+	queue_position_url = switch_mprintf("%s/ards_position", globals.rpc_url);
+
 
 	/*
 
@@ -726,9 +730,9 @@ static void register_ards(int company, int tenant){
 
 	*/
 
-	switch_snprintf(msg, sizeof(msg), "%d|%d|CALLSERVER|ARDS|CALL|%s|%d", company, tenant, callback, 1);
+	//switch_snprintf(msg, sizeof(msg), "%d|%d|CALLSERVER|ARDS|CALL|%s|%d", company, tenant, callback, 1);
 
-	
+
 	jdata = cJSON_CreateObject();
 	cJSON_AddNumberToObject(jdata, "Company", company);
 	cJSON_AddNumberToObject(jdata, "Tenant", tenant);
@@ -740,7 +744,7 @@ static void register_ards(int company, int tenant){
 	cJSON_AddStringToObject(jdata, "QueuePositionCallbackUrl", queue_position_url);
 	cJSON_AddStringToObject(jdata, "ServerID", globals.id);
 	p = cJSON_Print(jdata);
-	
+
 
 
 	/*
@@ -767,7 +771,7 @@ static void register_ards(int company, int tenant){
 	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, strlen(p));
 	switch_curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, (void *)p);
 
-	
+
 	headers = switch_curl_slist_append(headers, ct);
 	headers = switch_curl_slist_append(headers, ctx);
 	switch_safe_free(ct);
@@ -800,13 +804,19 @@ static void register_ards(int company, int tenant){
 	http_data->http_response_code = httpRes;
 
 	switch_safe_free(http_data->stream.data);
+	switch_safe_free(callback);
+	switch_safe_free(queue_position_url);
+
+	if (http_data && http_data->headers) {
+		switch_curl_slist_free_all(http_data->headers);
+	}
 
 	if (pool) {
 		switch_core_destroy_memory_pool(&pool);
 	}
 
 
-	
+
 	switch_safe_free(p);
 	cJSON_Delete(jdata);
 	jdata = NULL;
@@ -824,14 +834,15 @@ SWITCH_STANDARD_APP(queue_music_function)
 	switch_curl_slist_t *headers = NULL;
 	long httpRes = 0;
 	char *ctx;
+	char *tmpurl;
 	//char *uuid = switch_core_session_get_uuid(session);
 
 	const char *profile = switch_channel_get_variable(channel, "ards_profile");
 
-	if (profile){
-		char tmpurl[1000];
+	if (profile) {
+		
 
-		switch_snprintf(tmpurl, sizeof(tmpurl), "%s/plain/Profile/%s", globals.qurl,profile);
+		tmpurl = switch_mprintf( "%s/plain/Profile/%s", globals.qurl, profile);
 		//AgentGreeting/:name/:language
 
 
@@ -878,10 +889,10 @@ SWITCH_STANDARD_APP(queue_music_function)
 
 		http_data->http_response_code = httpRes;
 
-		
 
 
-		if (httpRes == 200){
+
+		if (httpRes == 200) {
 
 			if (!zstr(http_data->stream.data)) {
 
@@ -901,14 +912,18 @@ SWITCH_STANDARD_APP(queue_music_function)
 		}
 
 		switch_safe_free(http_data->stream.data);
+		switch_safe_free(tmpurl);
 
+		if (http_data && http_data->headers) {
+			switch_curl_slist_free_all(http_data->headers);
+		}
 
 		if (pool) {
 			switch_core_destroy_memory_pool(&pool);
 		}
 	}
 
-	
+
 
 	//switch_channel_set_variable(channel, "cc_last_agent_tier_level", agent_tier_level);
 
@@ -921,7 +936,7 @@ SWITCH_STANDARD_APP(ards_function)
 	//switch_snprintf(tmpurl, sizeof(tmpurl), "%s/%s", url, uuid);
 
 	char dbuf[10];
-	char music_file_path[1000];
+	char* music_file_path;
 	switch_input_args_t args = { 0 };
 	switch_channel_t *channel = switch_core_session_get_channel(session);
 	char *uuid = switch_core_session_get_uuid(session);
@@ -941,40 +956,30 @@ SWITCH_STANDARD_APP(ards_function)
 	long time_m = 0;
 	switch_bool_t queue_max_reached = SWITCH_FALSE;
 	switch_status_t pstatus;
-
-
 	const char *skill = NULL;
 	const char *priority = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
-//	int argc;
 	char *mydata = NULL, *argv[5];
-	
-	if (!position_language){
+
+	if (!position_language) {
 		position_language = "en";
 	}
 
-	if (announcement_time){
+	if (announcement_time) {
 		time_a = atoi(announcement_time);
 	}
 
-
 	if (max_queue_time) {
 		time_m = atol(max_queue_time);
-
 	}
 
-	if (position_announcement && !strcasecmp(position_announcement, "true")){
-		
-
+	if (position_announcement && !strcasecmp(position_announcement, "true")) {
 	}
-	
+
 
 	mydata = strdup(data);
 	switch_separate_string(mydata, ',', argv, (sizeof(argv) / sizeof(argv[0])));
-
-	
-
 	switch_safe_free(mydata);
 
 	//const char *priority = NULL;
@@ -985,234 +990,228 @@ SWITCH_STANDARD_APP(ards_function)
 
 
 	switch_channel_set_variable(channel, "dvp_call_type", "ards");
+	switch_channel_set_variable(channel, "hangup_after_bridge", "false");
+	
 	switch_channel_answer(channel);
 
-	if (!skill){
-		
-
-		if (argv[0]){ skill = argv[0]; }
-		else{
-		
+	if (!skill) {
+		if (argv[0]) { skill = argv[0]; }
+		else {
 			skill = "111111";
 		}
-
-
 	}
-
-	if (!company){
-
-		if (argv[2]){
-		
+	if (!company) {
+		if (argv[2]) {
 			company = argv[2];
-		} else{
-		
+		}
+		else {
 			company = "1";
 		}
-
-		
-
 	}
 
-	if (!tenant){
-
-
-		if (argv[1]){
+	if (!tenant) {
+		if (argv[1]) {
 			tenant = argv[1];
-		
 		}
-		else{
-		
+		else {
 			tenant = "1";
 		}
-		
 	}
 
-	add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority);
-	position = switch_channel_get_variable(channel, "ards_queue_position");
-	t_queue_added = local_epoch_time_now(NULL);
-	switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, t_queue_added);
+	if (add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority) == SWITCH_STATUS_SUCCESS) {
 
-	/*
-	if (firstannouncement){
-
-		char music_path[1000];
-		switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s", globals.durl, tenant, company,firstannouncement);
-		firstannouncement = music_path;
-	}
-
-	if (announcement){
-
-		char music_path[1000];
-		switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s", globals.durl, tenant, company,announcement );
-		announcement = music_path;
-	}
-	*/
+		position = switch_channel_get_variable(channel, "ards_queue_position");
+		t_queue_added = local_epoch_time_now(NULL);
+		switch_channel_set_variable_printf(channel, "ards_added", "%" SWITCH_TIME_T_FMT, t_queue_added);
 
 
+		if (position_announcement && !strcasecmp(position_announcement, "true") && position) {
 
-	if (!strcasecmp(position_announcement, "true") && position){
-
-		moh_step = ARDS_POSITION_ANNOUNCEMENT;
-	}
-	else if (firstannouncement){
-
-		moh_step = ARDS_PRE_MOH;
-
-	}
-	else{
-		moh_step = ARDS_MOH;
-	}
-
-	/*
-
-
-	if (!tmp) {
-		tmp = switch_channel_get_hold_music(channel);
-	}
-	else{
-		if (time_a > 0){
-
-			char music_path[1000];
-			switch_snprintf(music_path, sizeof(music_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company,tmp);
-			tmp = music_path;
+			moh_step = ARDS_POSITION_ANNOUNCEMENT;
 		}
-		else{
-
-			char music_path[1000];
-			switch_snprintf(music_path, sizeof(music_path), "%s/%s/%s/%s",  globals.durl, tenant, company, tmp);
-			tmp = music_path;
-
+		else if (firstannouncement) {
+			moh_step = ARDS_PRE_MOH;
 		}
-	}
-
-	if (tmp) {
-		music = tmp;
-	}
-	*/
-	if (!strcasecmp(music, "silence")) {
-		//music = "silence_stream://-1";
-
-		switch_snprintf(music_file_path, sizeof(music_file_path), "silence_stream://-1");
-	}
-	
-
-	args.input_callback = ards_on_dtmf;
-	args.buf = dbuf;
-	args.buflen = sizeof(dbuf);
-
-	
-
-	while (switch_channel_ready(channel)) {
-
-
-		if (time_m > 0 && ((long)local_epoch_time_now(NULL) - (long)t_queue_added) > time_m) {
-			queue_max_reached = SWITCH_TRUE;
-			break;
-		}
-
-
-		////////////////////////////////////////////////////////////////////////////////
-		if (moh_step == ARDS_PRE_MOH){
-
-			//music = firstannouncement;
-			switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, firstannouncement);
-
-		}
-		else if (moh_step == ARDS_MOH)
-		{
-			//music = tmp;
-			if (!tmp) {
-
-				tmp = switch_channel_get_hold_music(channel);
-				switch_snprintf(music_file_path, sizeof(music_file_path), tmp);
-			}
-			else{
-				if (time_a > 0){
-
-					//char music_path[1000];
-					switch_snprintf(music_file_path, sizeof(music_file_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company, tmp);
-					//tmp = music_path;
-				}
-				else{
-
-					//char music_path[1000];
-					switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, tmp);
-					//tmp = music_path;
-
-				}
-			}
-		}
-		else if(moh_step == ARDS_MOH_ANNOUNCEMENT)
-		{
-			//music = announcement;
-			switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, announcement);
-		}
-		else if (moh_step == ARDS_POSITION_ANNOUNCEMENT || moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT){
-			
-			//char music_path[1000];
-			position = switch_channel_get_variable(channel, "ards_queue_position");
-			switch_snprintf(music_file_path, sizeof(music_file_path), "phrase:queue_position:%s", position);
-			//music = music_path;
-		}
-
-		
-
-		///////////////////////////////////////////////////////////////////////////////
-		pstatus = switch_ivr_play_file(session, NULL, music_file_path, &args);
-		
-		
-		
-		if (moh_step == ARDS_POSITION_ANNOUNCEMENT){
-			if (firstannouncement){
-				moh_step = ARDS_PRE_MOH;
-
-			}
-			else{
-				moh_step = ARDS_MOH;
-			}
-
-		}
-		else if (moh_step == ARDS_PRE_MOH){
-			
-			moh_step = ARDS_MOH;
-		}
-		else if (moh_step == ARDS_MOH){
-
-			if (announcement && time_a > 0){
-				moh_step = ARDS_MOH_ANNOUNCEMENT;
-			}
-		}
-		else if (moh_step == ARDS_MOH_ANNOUNCEMENT){
-
-			if (!strcasecmp(position_announcement, "true") && position){
-
-				moh_step = ARDS_REPEAT_POSITION_ANNOUNCEMENT;
-			}
-			else{
-				moh_step = ARDS_MOH;
-			}
-		}
-		else if (moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT){
+		else {
 			moh_step = ARDS_MOH;
 		}
 
+		if (music && !strcasecmp(music, "silence")) {
+			//music = "silence_stream://-1";
+			//switch_snprintf(music_file_path, sizeof(music_file_path), "silence_stream://-1");
+			music_file_path = switch_mprintf("%s", "silence_stream://-1");
+		}
+
+		args.input_callback = ards_on_dtmf;
+		args.buf = dbuf;
+		args.buflen = sizeof(dbuf);
+
+		while (switch_channel_ready(channel)) {
 
 
-		if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
-			break;
+			if (time_m > 0 && ((long)local_epoch_time_now(NULL) - (long)t_queue_added) > time_m) {
+				queue_max_reached = SWITCH_TRUE;
+				break;
+			}
+			////////////////////////////////////////////////////////////////////////////////
+			if (moh_step == ARDS_PRE_MOH) {
+
+				//music = firstannouncement;
+				//switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, firstannouncement);
+
+				music_file_path = switch_mprintf("%s/%s/%s/%s", globals.durl, tenant, company, firstannouncement);
+
+			}
+			else if (moh_step == ARDS_MOH)
+			{
+				//music = tmp;
+				if (!tmp) {
+
+					tmp = switch_channel_get_hold_music(channel);
+					//switch_snprintf(music_file_path, sizeof(music_file_path), tmp);
+
+					music_file_path = switch_mprintf("%s", tmp);
+				}
+				else {
+					if (time_a > 0) {
+
+						//char music_path[1000];
+						//switch_snprintf(music_file_path, sizeof(music_file_path), "{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company, tmp);
+
+						music_file_path = switch_mprintf("{timeout=%d}%s/%s/%s/%s", time_a, globals.durl, tenant, company, tmp);
+						//tmp = music_path;
+					}
+					else {
+
+						//char music_path[1000];
+						//switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, tmp);
+						//tmp = music_path;
+
+						music_file_path = switch_mprintf("%s/%s/%s/%s", globals.durl, tenant, company, tmp);
+
+					}
+				}
+			}
+			else if (moh_step == ARDS_MOH_ANNOUNCEMENT)
+			{
+				//music = announcement;
+				//switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, announcement);
+				music_file_path = switch_mprintf("%s/%s/%s/%s", globals.durl, tenant, company, announcement);
+			}
+			else if (moh_step == ARDS_POSITION_ANNOUNCEMENT || moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT) {
+
+				//char music_path[1000];
+				position = switch_channel_get_variable(channel, "ards_queue_position");
+				//switch_snprintf(music_file_path, sizeof(music_file_path), "phrase:queue_position:%s", position);
+				//music = music_path;
+				music_file_path = switch_mprintf("phrase:queue_position:%s", position);
+
+			}
+			else {
+
+				music_file_path = switch_mprintf("%s", "silence_stream://-1");
+			}
+
+			///////////////////////////////////////////////////////////////////////////////
+			pstatus = switch_ivr_play_file(session, NULL, music_file_path, &args);
+			switch_safe_free(music_file_path);
+
+
+			if (moh_step == ARDS_POSITION_ANNOUNCEMENT) {
+				if (firstannouncement) {
+					moh_step = ARDS_PRE_MOH;
+
+				}
+				else {
+					moh_step = ARDS_MOH;
+				}
+
+			}
+			else if (moh_step == ARDS_PRE_MOH) {
+
+				moh_step = ARDS_MOH;
+			}
+			else if (moh_step == ARDS_MOH) {
+
+				if (announcement && time_a > 0) {
+					moh_step = ARDS_MOH_ANNOUNCEMENT;
+				}
+				else if (position_announcement && time_a > 0 && !strcasecmp(position_announcement, "true") && position) {
+
+					moh_step = ARDS_REPEAT_POSITION_ANNOUNCEMENT;
+				}
+			}
+			else if (moh_step == ARDS_MOH_ANNOUNCEMENT) {
+
+				if (position_announcement && !strcasecmp(position_announcement, "true") && position) {
+
+					moh_step = ARDS_REPEAT_POSITION_ANNOUNCEMENT;
+				}
+				else {
+					moh_step = ARDS_MOH;
+				}
+			}
+			else if (moh_step == ARDS_REPEAT_POSITION_ANNOUNCEMENT) {
+				moh_step = ARDS_MOH;
+			}
+
+			if (pstatus == SWITCH_STATUS_BREAK || pstatus == SWITCH_STATUS_TIMEOUT) {
+				break;
+			}
 		}
 
 
+		if (!switch_channel_up(channel)) {
+
+			switch_core_session_hupall_matching_var("ards_client_uuid", uuid, SWITCH_CAUSE_ORIGINATOR_CANCEL);
+			Inform_ards(ARDS_RING_REJECTED, uuid, "reject", atoi(company), atoi(tenant));
+			switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+
+			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "client-left");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+				switch_event_fire(&event);
+			}
+		}
+		else {
+
+
+			if (queue_max_reached) {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Left queue after maximum waiting");
+			}
+
+			Inform_ards(ARDS_COMPLETED, uuid, "routed", atoi(company), atoi(tenant));
+
+			switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+			switch_channel_set_variable_printf(channel, "ards_routed", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+
+			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-routed");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+				switch_event_fire(&event);
+			}
+			//Inform_ards(ARDS_REMOVE, "TEST", "TEST");
+
+		}
+
 	}
-
-
-	if (!switch_channel_up(channel)){
-
+	else
+	{
+		//////////////////////////////////////////////check for queue left///////////////////////////////////////////////////////////
 		switch_core_session_hupall_matching_var("ards_client_uuid", uuid, SWITCH_CAUSE_ORIGINATOR_CANCEL);
 		Inform_ards(ARDS_RING_REJECTED, uuid, "reject", atoi(company), atoi(tenant));
 		switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-		
-		
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "client-left");
@@ -1224,33 +1223,9 @@ SWITCH_STANDARD_APP(ards_function)
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
 		}
-	}
-	else{
-
-
-		if (queue_max_reached) {
-
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Left queue after maximum waiting");
-		}
-
-		Inform_ards(ARDS_COMPLETED, uuid, "routed",atoi(company),atoi(tenant));
-
-		switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-		switch_channel_set_variable_printf(channel, "ards_routed", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-
-		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-routed");
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
-			switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
-			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
-			switch_event_fire(&event);
-		}
-		//Inform_ards(ARDS_REMOVE, "TEST", "TEST");
 
 	}
+
 
 	return;
 }
@@ -1274,6 +1249,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	const char *caller_name = NULL;
 	const char *caller_number = NULL;
 	const char *calling_number = NULL;
+	const char *dial_time = NULL;
 	const char *p;
 	switch_event_t *event;
 	char *expandedx;
@@ -1281,6 +1257,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char* ardsfeatures;
 	char* ardsoutboundfeatures;
 	char* ardsoutivrfeatures;
+
 	//char* agentGreeting;
 	const char* company = h->company;
 	const char* tenant = h->tenant;
@@ -1299,11 +1276,12 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	long httpRes = 0;
 	char *ctn;
 	char *cto;
-	char tmpurl[1000];
-	char music_file_path[1000];
+	char *tmpurl;
+	char *music_file_path;
 	time_t when;
+	int time_d = 30;
 	//bind_flags |= SBF_DIAL_ALEG;
-	
+
 	bind_flags |= SBF_DIAL_BLEG;
 	bind_flags |= SBF_EXEC_SAME;
 
@@ -1311,7 +1289,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
 
-	
+
 	member_session = switch_core_session_locate(h->member_uuid);
 
 	if (member_session) {
@@ -1326,7 +1304,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		if (switch_ivr_bind_dtmf_meta_session(member_session, kval, bind_flags, "execute_extension::att_xfer XML PBXFeatures") != SWITCH_STATUS_SUCCESS) {
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 		}
 
 		*/
@@ -1336,14 +1314,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "OutBound Started");
 
-
-
 		member_channel = switch_core_session_get_channel(member_session);
-		
 
 		if ((p = switch_channel_get_variable(member_channel, "ards_agent_found")) && (agent_found = switch_true(p))) {}
 
-		if (agent_found){
+		if (agent_found) {
 			switch_core_destroy_memory_pool(&h->pool);
 			return NULL;
 		}
@@ -1355,6 +1330,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		caller_name = switch_channel_get_variable(member_channel, "caller_id_name");
 		caller_number = switch_channel_get_variable(member_channel, "caller_id_number");
 		calling_number = switch_channel_get_variable(member_channel, "destination_number");
+		dial_time = switch_channel_get_variable(member_channel, "ards_dial_time");
+
+		if (dial_time) {
+			time_d = atoi(dial_time);
+		}
 
 
 		if (!(cid_name = switch_channel_get_variable(member_channel, "effective_caller_id_name"))) {
@@ -1368,12 +1348,12 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			engagement_type = "skype";
 		}
 
-		
+
 		//switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting channel name to: %s\n", strstr(channel_name, "@sip.skype.com"));
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_name to: %s\n", cid_name);
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Setting outbound caller_id_number to: %s\n", cid_number);
 		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Setting channel name to: %s\n", channel_name);
-		
+
 		switch_event_create(&ovars, SWITCH_EVENT_REQUEST_PARAMS);
 		//////add necessory event details/////////////////////////////////
 
@@ -1386,7 +1366,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_name", "%s", h->resource_name);
 		switch_channel_process_export(member_channel, NULL, ovars, "ards_export_vars");
 
-		
+
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 
@@ -1406,12 +1386,12 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
 			switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
 			switch_event_fire(&event);
-		
+
 		}
 
 		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name);
 		if (!zstr(h->profile_name)) {
-						
+
 			send_notification("agent_found", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 		}
 		switch_safe_free(msg);
@@ -1419,15 +1399,15 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
 
 
-		
-		if (!strcasecmp(h->originate_type,"PRIVATE")){
 
-		//sip_h_X-User-to-User=48656c6c6f
-			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=25,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s",h->member_uuid, h->member_uuid , h->originate_user, h->originate_domain);
+		if (!strcasecmp(h->originate_type, "PRIVATE")) {
+
+			//sip_h_X-User-to-User=48656c6c6f
+			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=%d,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->member_uuid, time_d, h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 		}
-		else if (!strcasecmp(h->originate_type, "PUBLIC")){
+		else if (!strcasecmp(h->originate_type, "PUBLIC")) {
 
 			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PUBLIC_USER,sip_h_DVP-DESTINATION-TYPE=PUBLIC_USER}sofia/external/%s@%s", h->member_uuid, h->member_uuid, h->originate_user, h->originate_domain);
 			switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "sip_h_DVP-DESTINATION-TYPE", "%s", "PUBLIC_USER");
@@ -1436,7 +1416,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		}
-		else if (!strcasecmp(h->originate_type, "TRUNK")){
+		else if (!strcasecmp(h->originate_type, "TRUNK")) {
 
 			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=GATEWAY,sip_h_DVP-DESTINATION-TYPE=GATEWAY}sofia/gateway/%s/%s", h->member_uuid, h->member_uuid, h->originate_domain, h->originate_user);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
@@ -1446,7 +1426,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 		else {
 
-			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=25,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->member_uuid, h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=%d,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->member_uuid, time_d, h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 
@@ -1457,11 +1437,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		dialstr = switch_channel_expand_variables(member_channel, h->originate_string);
-		status = switch_ivr_originate(NULL, &agent_session, &cause, dialstr, 25, NULL, cid_name ? cid_name : h->member_cid_name, cid_number ? cid_number : h->member_cid_number, NULL, ovars, SOF_NONE, NULL);
+		status = switch_ivr_originate(NULL, &agent_session, &cause, dialstr, time_d, NULL, cid_name ? cid_name : h->member_cid_name, cid_number ? cid_number : h->member_cid_number, NULL, ovars, SOF_NONE, NULL);
 		if (dialstr != h->originate_string) {
 			switch_safe_free(dialstr);
 		}
-		
+
 
 		switch_event_destroy(&ovars);
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1475,7 +1455,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			agent_channel = switch_core_session_get_channel(agent_session);
 
 
-			
+
 
 			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
@@ -1494,7 +1474,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 			if (!zstr(h->profile_name)) {
-				msg = switch_mprintf("agent_connected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name,switch_core_session_get_uuid(agent_session));
+				msg = switch_mprintf("agent_connected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, switch_core_session_get_uuid(agent_session));
 				send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 			}
 			switch_safe_free(msg);
@@ -1503,36 +1483,36 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Id", h->resource_id);
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Name", h->resource_name);
 			switch_channel_set_variable(member_channel, "ARDS-SIP-Name", h->originate_display);
-			
-			
+
+
 
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
 
 			ardsfeatures = switch_mprintf("execute_extension::att_xfer XML ARDSFeatures|%q|%q", tenant, company);
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(member_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
-			
+
 			ardsoutboundfeatures = switch_mprintf("execute_extension::att_xfer_outbound XML ARDSFeatures|%q|%q", tenant, company);
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(member_session, rval, bind_flags, (const char*)ardsoutboundfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
-			
-			
-			ardsoutivrfeatures  = switch_mprintf("execute_extension::att_xfer_ivr XML ARDSFeatures|%q|%q", tenant, company);
-			
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR,  "Agent leg binding");
+
+
+			ardsoutivrfeatures = switch_mprintf("execute_extension::att_xfer_ivr XML ARDSFeatures|%q|%q", tenant, company);
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(member_session, ival, bind_flags, (const char*)ardsoutivrfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
 			}
-			
+
 			//execute_on_answer=uuid_broadcast 336889f2-1868-11de-81a9-3f4acc8e505e sorry.wav both
 			//switch_core_session_get_uuid(agent_session)
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1541,7 +1521,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			//switch_channel_set_variable(agent_channel, "execute_on_answer", agentGreeting);
 
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			
+
 			switch_safe_free(ardsfeatures);
 			switch_safe_free(ardsoutboundfeatures);
 			switch_safe_free(ardsoutivrfeatures);
@@ -1561,12 +1541,19 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 						switch_safe_free(expanded);
 					}
 
+					//<action application="set" data="exec_after_bridge_app=transfer"/>
+					//<action application = "set" data = "exec_after_bridge_arg=2102" / >
+					//<action application="stop_record_session" data="${record_file_name}"/>
+					//switch_channel_set_variable(member_channel, "exec_after_bridge_app", stop_record_session);
+					//switch_channel_set_variable(member_channel, "exec_after_bridge_arg", expanded);
+
 					////////////////////////////////////////upload end of the session////////////////////////////////////////////
 
 
 					if (globals.uurl) {
-						char uploaddata[1000];
-						switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->resource_name);
+						//////check for memory leak/////////////////////////////////////////////
+						char* uploaddata = switch_mprintf("curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->resource_name);
+						//switch_snprintf(uploaddata, sizeof(uploaddata), "curl_sendfile:%s/%s/%s file=%s class=CALLSERVER&type=CALL&category=CONVERSATION&mediatype=audio&filetype=mp3&referenceid=%s&display=%s-%s", globals.uurl, h->tenant, h->company, switch_channel_get_variable(member_channel, "ards_record_file"), h->member_uuid, caller_number, h->resource_name);
 						expandedx = switch_channel_expand_variables(member_channel, uploaddata);
 						switch_channel_set_variable(member_channel, "record_post_process_exec_api", expandedx);
 
@@ -1583,9 +1570,9 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				//////////////////////////////////////////////test webupload ////////////////////////////////////
 				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
-				char uploaddata[1000];
-				switch_snprintf(uploaddata, sizeof(uploaddata), "http://(file=%s.mp3)%s/%s/%s?class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&mediatype=audio&filetype=mp3&sessionid=%s&display=%s-%s", h->member_uuid, globals.rurl, h->tenant, h->company, h->member_uuid, h->member_uuid, caller_number, h->resource_name);
+				char* uploaddata = switch_mprintf("http://(file=%s.mp3)%s/%s/%s?class=CALLSERVER&type=CALL&category=CONVERSATION&referenceid=%s&mediatype=audio&filetype=mp3&sessionid=%s&display=%s-%s", h->member_uuid, globals.rurl, h->tenant, h->company, h->member_uuid, h->member_uuid, caller_number, h->resource_name);
 				switch_ivr_record_session(member_session, uploaddata, 0, NULL);
+				switch_safe_free(uploaddata);
 
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1617,19 +1604,13 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			SWITCH_STANDARD_STREAM(http_data->stream);
 
 
-			switch_snprintf(tmpurl, sizeof(tmpurl), "%s/AgentGreeting/%s/%s", globals.qurl, h->profile_name, switch_channel_get_variable(member_channel, "ards_position_language"));
-
-
+			tmpurl = switch_mprintf("%s/AgentGreeting/%s/%s", globals.qurl, h->profile_name, switch_channel_get_variable(member_channel, "ards_position_language"));
 
 			headers = switch_curl_slist_append(headers, ctn);
 			switch_safe_free(ctn);
 
 			headers = switch_curl_slist_append(headers, cto);
 			switch_safe_free(cto);
-
-
-
-
 
 			//struct data_stream dstream = { NULL };
 			switch_curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "GET");
@@ -1667,23 +1648,29 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 					char *mydata = strdup(http_data->stream.data);
 					switch_assert(mydata);
-					switch_snprintf(music_file_path, sizeof(music_file_path), "%s/%s/%s/%s", globals.durl, tenant, company, mydata);
+					music_file_path = switch_mprintf("%s/%s/%s/%s", globals.durl, tenant, company, mydata);
 					//status = switch_ivr_play_file(agent_session, NULL, music_file_path, NULL);
 					//switch_ivr_broadcast(h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
 					when = switch_epoch_time_now(NULL) + 2;
-					switch_ivr_schedule_broadcast(when,h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
+					switch_ivr_schedule_broadcast(when, h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
 					//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG);
 					//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG | SMF_ECHO_ALEG);
 
 					switch_safe_free(mydata);
+					switch_safe_free(music_file_path);
 
 				}
 
 			}
 
 
+			switch_safe_free(tmpurl);
 
 			switch_safe_free(http_data->stream.data);
+
+			if (http_data && http_data->headers) {
+				switch_curl_slist_free_all(http_data->headers);
+			}
 
 			if (pool) {
 				switch_core_destroy_memory_pool(&pool);
@@ -1732,21 +1719,21 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 				switch_safe_free(msg);
 			}
-			
+
 
 
 			switch_channel_set_variable_printf(member_channel, "ards_route_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-		
+
 
 		}
-		else{
+		else {
 
-			if (switch_channel_up(member_channel)){
+			if (switch_channel_up(member_channel)) {
 
 
 				Inform_ards(ARDS_REJECTED, h->member_uuid, switch_channel_cause2str(cause), atoi(h->company), atoi(h->tenant));
 				switch_channel_set_variable(member_channel, "ards_agent_found", NULL);
-				
+
 
 				if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
@@ -1775,7 +1762,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 					send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
 					switch_safe_free(msg);
 				}
-				
+
 
 			}
 			else {
@@ -1786,20 +1773,20 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 				/*if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ring-rejected");
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
-					switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
-					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
-					switch_event_fire(&event);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ring-rejected");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", h->member_uuid);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Id", h->resource_id);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Resource-Name", h->resource_name);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Reason", switch_channel_cause2str(cause));
+				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+				switch_event_fire(&event);
 				}
-*/
+				*/
 
 				if (!zstr(h->profile_name)) {
 
@@ -1813,35 +1800,29 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 	}
-	else{
-		
+	else {
+
 		Inform_ards(ARDS_EXPIRE, h->member_uuid, "nosession", atoi(h->company), atoi(h->tenant));
-
-
 	}
 
 	if (agent_session) {
-		
+
 		switch_core_session_rwunlock(agent_session);
 	}
 	if (member_session) {
-		
+
 		switch_core_session_rwunlock(member_session);
 
 	}
 
 
 	switch_core_destroy_memory_pool(&h->pool);
-
-
-
-
 	return NULL;
 }
 
-SWITCH_STANDARD_API(ards_position_function){
-	
-	
+SWITCH_STANDARD_API(ards_position_function) {
+
+
 	char *mydata = NULL;
 	switch_core_session_t *member_session = NULL;
 	char *sessionid = NULL;
@@ -1850,12 +1831,8 @@ SWITCH_STANDARD_API(ards_position_function){
 	//int position = -1;
 	//switch_status_t pstatus;
 	switch_channel_t *channel = NULL;
-	
 
-	cJSON *cj, *cjp;
-
-
-	
+	cJSON *cj, *cjp, *cjr;
 	if (!globals.running) {
 		return SWITCH_STATUS_FALSE;
 	}
@@ -1863,54 +1840,71 @@ SWITCH_STANDARD_API(ards_position_function){
 		stream->write_function(stream, "-USAGE: \n%s\n", "[<uuid>|<url>|<company>|<tenant>|<class>|<type>|<category>]");
 		return SWITCH_STATUS_SUCCESS;
 	}
-	
+
 	mydata = strdup(cmd);
 	switch_assert(mydata);
-	
-	
-	
-	//{SessionId: item, QueueId: queueId, QueuePosition: i+1};
-	if ((cj = cJSON_Parse(mydata)) ) {
+
+
+	if ((cj = cJSON_Parse(mydata)) && cj->type == cJSON_Array) {
+
 		for (cjp = cj->child; cjp; cjp = cjp->next) {
-			char *name = cjp->string;
-			char *value = cjp->valuestring;
 
-			if (name && value) {
-				if (!strcasecmp(name, "SessionId")) {
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Array loop started");
 
-					switch_strdup(sessionid, value);
+			for (cjr = cjp->child; cjr; cjr = cjr->next) {
+				char *name = cjr->string;
+				char *value = cjr->valuestring;
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Array Item loop started %s", name);
+
+				if (name && value) {
+					if (!strcasecmp(name, "SessionId")) {
+
+						switch_strdup(sessionid, value);
+
+					}
+					else if (!strcasecmp(name, "QueueId")) {
+
+						switch_strdup(queue, value);
+					}
+
+					else if (!strcasecmp(name, "QueuePosition")) {
+
+						switch_strdup(position, value);
+					}
 
 				}
-				else if (!strcasecmp(name, "QueueId")) {
+			}
+			member_session = switch_core_session_locate(sessionid);
 
-					switch_strdup(queue, value);
+			if (member_session) {
+
+				channel = switch_core_session_get_channel(member_session);
+				if (channel) {
+					switch_channel_set_variable_printf(channel, "ards_queue_position", "%s", position);
 				}
+				else {
 
-				else if (!strcasecmp(name, "QueuePosition")) {
-
-					switch_strdup(position, value);
+					switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No channel found");
 				}
+			}
+			else {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No session found");
+			}
+
+
+			switch_safe_free(sessionid);
+			switch_safe_free(queue);
+
+			if (member_session) {
+
+				switch_core_session_rwunlock(member_session);
 
 			}
-		}
-		
-		switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_NOTICE, "Possition recived  for %s and the position is %s", sessionid, position);
-		member_session = switch_core_session_locate(sessionid);
-		
-		if (member_session){
-			channel = switch_core_session_get_channel(member_session);
-			if (channel){
-				switch_channel_set_variable_printf(channel, "ards_queue_position", "%s", position);
-			}
-			else{
 
-				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No channel found");
-			}
 		}
-		else{
-		
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "No session found");
-		}
+
 
 
 		/*
@@ -1923,38 +1917,27 @@ SWITCH_STANDARD_API(ards_position_function){
 		}
 		}*/
 	}
-	
+
 	stream->write_function(stream, "+OK");
-	
-	
-	switch_safe_free(mydata);
-	switch_safe_free(sessionid);
-	switch_safe_free(queue);
+
 
 	cJSON_Delete(cj);
+	switch_safe_free(mydata);
 
-	if (member_session) {
 
-		switch_core_session_rwunlock(member_session);
-
-	}
-
-	 
 	return SWITCH_STATUS_SUCCESS;
 
-	
+
 }
 
 SWITCH_STANDARD_API(ards_route_function)
 {
-	
+
 
 	////////////////////////////////////////////////////////route thread start/////////////////////////////////////
 	char *mydata = NULL;
-	
-
 	cJSON *cj, *cjp, *cjr;
-	
+
 	switch_thread_t *thread;
 	switch_threadattr_t *thd_attr = NULL;
 	switch_memory_pool_t *pool;
@@ -1965,13 +1948,13 @@ SWITCH_STANDARD_API(ards_route_function)
 	h->pool = pool;
 
 
-	
+
 	if (!globals.running) {
 		return SWITCH_STATUS_FALSE;
 	}
 	if (zstr(cmd)) {
-		stream->write_function(stream, "-USAGE: \n%s\n", "[<uuid>|<url>|<company>|<tenant>|<class>|<type>|<category>]");
-		return SWITCH_STATUS_SUCCESS;
+		stream->write_function(stream, "-ERR : \n%s\n", "[<uuid>|<url>|<company>|<tenant>|<class>|<type>|<category>]");
+		return SWITCH_STATUS_FALSE;
 	}
 
 	mydata = strdup(cmd);
@@ -1979,7 +1962,7 @@ SWITCH_STANDARD_API(ards_route_function)
 
 
 
-	if ((cj = cJSON_Parse(mydata)) ) {
+	if ((cj = cJSON_Parse(mydata))) {
 
 
 		for (cjp = cj->child; cjp; cjp = cjp->next) {
@@ -1989,14 +1972,13 @@ SWITCH_STANDARD_API(ards_route_function)
 			if (name && value) {
 				if (!strcasecmp(name, "ServerType")) {
 
-					
 					h->servertype = switch_core_strdup(h->pool, value);
 
 				}
 				else if (!strcasecmp(name, "RequestType")) {
 
 					h->requesttype = switch_core_strdup(h->pool, value);
-					
+
 				}
 
 				else if (!strcasecmp(name, "Skills")) {
@@ -2004,10 +1986,10 @@ SWITCH_STANDARD_API(ards_route_function)
 					h->skills = switch_core_strdup(h->pool, value);
 
 				}
-				
+
 				else if (!strcasecmp(name, "SessionID")) {
 
-					
+
 					h->member_uuid = switch_core_strdup(h->pool, value);
 					h->member_session_uuid = switch_core_strdup(h->pool, value);
 
@@ -2022,125 +2004,96 @@ SWITCH_STANDARD_API(ards_route_function)
 					h->tenant = switch_core_strdup(h->pool, value);
 
 				}
-				
+
 
 			}
 			else {
-				if (!strcasecmp(name, "ResourceInfo") && cjp->type == cJSON_Object) {
+				if (name && !strcasecmp(name, "ResourceInfo") && cjp->type == cJSON_Object) {
 
 					for (cjr = cjp->child; cjr; cjr = cjr->next) {
-						
+
 						char *namex = cjr->string;
+						char *valuex = cjr->valuestring;
 
-						if (!strcasecmp(namex, "Extention")) {
-
-	
-							char *valuex = cjr->valuestring;
-
-							char *ctx = switch_mprintf("%s", valuex);
-							h->originate_user = switch_core_strdup(h->pool, ctx);
-							switch_safe_free(ctx);
+						if (namex && valuex) {
 
 
-						}
+							if (!strcasecmp(namex, "Extention")) {
 
-						else if (!strcasecmp(namex, "ContactType")){
+								char *ctx = switch_mprintf("%s", valuex);
+								h->originate_user = switch_core_strdup(h->pool, ctx);
+								switch_safe_free(ctx);
+
+							}
+							else if (!strcasecmp(namex, "ContactType")) {
+
+								
+								h->originate_type = switch_core_strdup(h->pool, valuex);
+							}
+							else if (!strcasecmp(namex, "Domain")) {
+
+								
+								h->originate_domain = switch_core_strdup(h->pool, valuex);
+
+							}
+							else if (!strcasecmp(namex, "ContactName")) {
+
+								
+								h->originate_display = switch_core_strdup(h->pool, valuex);
+
+							}
+							else if (!strcasecmp(namex, "ResourceId")) {
+
+								
+								h->resource_id = switch_core_strdup(h->pool, valuex);
+
+							}
+							else if (!strcasecmp(namex, "ResourceName")) {
+
 							
-							char *valuex = cjr->valuestring;
+								h->resource_name = switch_core_strdup(h->pool, valuex);
 
-							h->originate_type = switch_core_strdup(h->pool, valuex);
+							}
+							else if (!strcasecmp(namex, "Profile")) {
 
+								h->profile_name = switch_core_strdup(h->pool, valuex);
 
+							}
 						}
-
-
-						else if (!strcasecmp(namex, "Domain")){
-
-							char *valuex = cjr->valuestring;
-
-							h->originate_domain = switch_core_strdup(h->pool, valuex);
-
-						}
-
-
-						else if (!strcasecmp(namex, "ContactName")){
-
-							char *valuex = cjr->valuestring;
-
-							h->originate_display = switch_core_strdup(h->pool, valuex);
-
-						}
-
-
-
-
-						else if (!strcasecmp(namex, "ResourceId")) {
-
-							char *valuex = cjr->valuestring;
-
-							h->resource_id = switch_core_strdup(h->pool, valuex);
-
-						}
-
-
-						else if (!strcasecmp(namex, "ResourceName")) {
-
-							char *valuex = cjr->valuestring;
-
-							h->resource_name = switch_core_strdup(h->pool, valuex);
-
-						}
-
-
-						else if (!strcasecmp(namex, "Profile")) {
-
-							char *valuex = cjr->valuestring;
-
-							h->profile_name = switch_core_strdup(h->pool, valuex);
-
-						}
-
 					}
-				
 				}
 			}
 		}
 
-		
 
-
-
-
-
-
-	////////////////////////////////////////////////////////plain text//////////////////////////////////////////////////////////////////////
-	/*
-	if (argc < 2) {
+		////////////////////////////////////////////////////////plain text//////////////////////////////////////////////////////////////////////
+		/*
+		if (argc < 2) {
 		stream->write_function(stream, "%s", "-ERR Invalid!\n");
-	}
-	else{
+		}
+		else{
 
 		uuid = argv[0];
 		url = argv[1];
 		if (argc > 2)
-			company = argv[2];
+		company = argv[2];
 		if (argc > 3)
-			tenant = argv[3];
+		tenant = argv[3];
 		if (argc > 4)
-			resource_id = argv[4];
+		resource_id = argv[4];
 		if (argc > 5)
-			class = argv[5];
+		class = argv[5];
 		if (argc > 6)
-			type = argv[6];
+		type = argv[6];
 		if (argc > 7)
-			category = argv[7];
+		category = argv[7];
 
 		*/
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		
 
-		if (!zstr(h->resource_name) &&  !zstr(h->resource_id) && !zstr(h->member_uuid) && !zstr(h->servertype) && !zstr(h->requesttype) && !zstr(h->company) && !zstr(h->tenant) && !zstr(h->originate_domain) && !zstr(h->originate_user) && !zstr(h->originate_type)){
+
+		if (!zstr(h->resource_name) && !zstr(h->resource_id) && !zstr(h->member_uuid) && !zstr(h->servertype) && !zstr(h->requesttype) && !zstr(h->company) && !zstr(h->tenant) && !zstr(h->originate_domain) && !zstr(h->originate_user) && !zstr(h->originate_type) && !zstr(h->originate_display) && !zstr(h->profile_name) && !zstr(h->skills)) {
 
 
 			switch_threadattr_create(&thd_attr, h->pool);
@@ -2148,19 +2101,18 @@ SWITCH_STANDARD_API(ards_route_function)
 			switch_threadattr_stacksize_set(thd_attr, SWITCH_THREAD_STACKSIZE);
 			switch_thread_create(&thread, thd_attr, outbound_agent_thread_run, h, h->pool);
 
-			stream->write_function(stream, "+OK");
+			stream->write_function(stream, "+OK ");
 
-			
 		}
 		else
 		{
-			stream->write_function(stream, "-ERR");
+			stream->write_function(stream, "-ERR No enough properties found");
 
 
 		}
 
 		cJSON_Delete(cj);
-		
+
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	}
@@ -2173,14 +2125,14 @@ SWITCH_STANDARD_API(ards_route_function)
 SWITCH_STANDARD_API(ards_url_test)
 {
 
-	Inform_ards(ARDS_REMOVE, "TEST", "TEST",1,1);
+	Inform_ards(ARDS_REMOVE, "TEST", "TEST", 1, 1);
 
 
 	return SWITCH_STATUS_SUCCESS;
 }
 
 /* Macro expands to: switch_status_t mod_ards_load(switch_loadable_module_interface_t **module_interface, switch_memory_pool_t *pool) */
- 
+
 SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 {
 	switch_application_interface_t *app_interface;
@@ -2209,10 +2161,10 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 	SWITCH_ADD_APP(app_interface, "ards_profile", "ards_profile", "ardscc_profilr", queue_music_function, "queue_music", SAF_NONE);
 	SWITCH_ADD_API(api_interface, "ards_route", "Route to agent", ards_route_function, "[<uuid>,<url>,<company>,<tenant>,<class>,<type>,<category>]");
 	SWITCH_ADD_API(api_interface, "ards_position", "Agent position", ards_position_function, "[<uuid>,<url>,<company>,<tenant>,<class>,<type>,<category>]");
-	
-	
+
+
 	SWITCH_ADD_API(api_interface, "ards_url_test", "Test ards url", ards_url_test, "");
-	
+
 
 	register_ards(1, 1);
 
@@ -2227,7 +2179,7 @@ Macro expands to: switch_status_t mod_ards_shutdown() */
 
 SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_ards_shutdown)
 {
-	
+
 	//int sanity = 0;
 
 	switch_mutex_lock(globals.mutex);
@@ -2237,14 +2189,14 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_ards_shutdown)
 	switch_mutex_unlock(globals.mutex);
 
 	/*while (globals.threads) {
-		switch_cond_next();
-		if (++sanity >= 60000) {
-			break;
-		}
+	switch_cond_next();
+	if (++sanity >= 60000) {
+	break;
+	}
 	}*/
 
 	switch_mutex_lock(globals.mutex);
-	
+
 
 	switch_safe_free(globals.url);
 	switch_mutex_unlock(globals.mutex);
