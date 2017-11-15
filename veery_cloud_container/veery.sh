@@ -19,14 +19,20 @@ IFS=', ' read -r -a array <<< "$DEPLOY";
 
 #Install Docker
 
-# which curl
-# sudo apt-get install curl -y
-# curl -sSL https://get.docker.com/ | sh
-# curl -sSL https://get.docker.com/gpg | sudo apt-key add -
+which curl
+sudo apt-get install curl -y
+curl -sSL https://get.docker.com/ | sh
+curl -sSL https://get.docker.com/gpg | sudo apt-key add -
 
 # Install Nginx-Proxy
-
-#docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/localtime:/etc/localtime:ro --log-opt max-size=10m --restart=always --log-opt max-file=10 jwilder/nginx-proxy
+cd /usr/src/;
+if [ ! -d "DVP-ReverseProxy" ]; then
+	git clone https://github.com/DuoSoftware/DVP-ReverseProxy.git;
+fi
+cd DVP-ReverseProxy;
+docker build -t "nginx-proxy:latest" .
+cd /usr/src/;
+docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro -v /etc/localtime:/etc/localtime:ro --log-opt max-size=10m --restart=always --log-opt max-file=10 --name nginx nginx-proxy
 
 # install services
 
@@ -1186,7 +1192,46 @@ fi
 cd /usr/src/;
 docker run -d -t --memory="256m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="NODE_CONFIG_DIR=/usr/local/src/reportqueryfilters/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_VERSION=$HOST_VERSION" --env="HOST_REPORTQUERYFILTERS_PORT=8846" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_MONGO_HOST=$MONGO_HOST" --env="SYS_MONGO_USER=$MONGO_USER" --env="SYS_MONGO_PASSWORD=$MONGO_PASSWORD"  --env="SYS_MONGO_DB=$MONGO_DB" --env="SYS_MONGO_PORT=$MONGO_PORT" --env="SYS_MONGO_REPLICASETNAME=$MONGO_REPLICA_SET_NAME" --env="VIRTUAL_HOST=reportqueryfilters.*" --env="LB_FRONTEND=reportqueryfilters.$FRONTEND" --env="LB_PORT=$LB_PORT" --expose=8846/tcp -p 8846:8846 --log-opt max-size=10m --log-opt max-file=10 --restart=always --name reportqueryfilters reportqueryfilters:$VERSION_TAG node /usr/local/src/reportqueryfilters/app.js;
 ;;
+   "ardsliteserviceimproved")
+#18
+cd /usr/src/;
+if [ $REPOSITORY = "local" ]; then
+ docker pull $REPOSITORY_IPURL":5000"/"ardsliteserviceimproved:"$VERSION_TAG;
+ docker tag $REPOSITORY_IPURL":5000"/"ardsliteserviceimproved:"$VERSION_TAG "ardsliteserviceimproved:"$VERSION_TAG;
+ docker rmi -f $REPOSITORY_IPURL":5000"/"ardsliteserviceimproved:"$VERSION_TAG;
+elif [ $REPOSITORY = "github" ]; then
+if [ ! -d "DVP-ARDSLiteServiceImproved" ]; then
+	git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-ARDSLiteServiceImproved.git;
+fi
 
+cd DVP-ARDSLiteServiceImproved;
+docker build --build-arg VERSION_TAG=$VERSION_TAG -t "ardsliteserviceimproved:"$VERSION_TAG .;
+fi
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="NODE_CONFIG_DIR=/usr/local/src/ardsliteserviceimproved/config" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_ARDSLITESERVICEIMPROVED_PORT=8828" --env="SYS_DATABASE_HOST=$DATABASE_HOST" --env="SYS_DATABASE_TYPE=$DATABASE_TYPE" --env="SYS_DATABASE_POSTGRES_USER=$DATABASE_POSTGRES_USER" --env="SYS_DATABASE_POSTGRES_PASSWORD=$DATABASE_POSTGRES_PASSWORD" --env="SYS_SQL_PORT=$SQL_PORT" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="SYS_ARDSLITEROUTINGENGINE_HOST=ardsliteroutingengine.$FRONTEND" --env="SYS_ARDSLITEROUTINGENGINE_GO_CONFIG_DIR=/go/src/github.com/DuoSoftware/DVP-ARDSLiteRoutingEngine/ArdsLiteRoutingEngine" --env="SYS_ARDSLITEROUTINGENGINE_PORT=8835" --env="SYS_RESOURCESERVICE_HOST=resourceservice.$FRONTEND" --env="SYS_RESOURCESERVICE_PORT=8831" --env="SYS_RESOURCESERVICE_VERSION=$HOST_VERSION" --env="VIRTUAL_HOST=ardsliteserviceimproved.*" --env="LB_FRONTEND=ardsliteserviceimproved.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --env="SYS_SCHEDULEWORKER_HOST=scheduleworker.$FRONTEND" --env="SYS_SCHEDULEWORKER_PORT=8852" --env="SYS_SCHEDULEWORKER_VERSION=$HOST_VERSION" --env="SYS_NOTIFICATIONSERVICE_HOST=notificationservice.$FRONTEND" --env="SYS_NOTIFICATIONSERVICE_VERSION=$HOST_VERSION" --env="SYS_NOTIFICATIONSERVICE_PORT=8833" --env="SYS_ARDSMONITORING_HOST=ardsmonitoring.$FRONTEND" --env="SYS_ARDSMONITORING_PORT=8830" --env="SYS_ARDSMONITORING_VERSION=$HOST_VERSION" --env="HOST_USE_MSG_QUEUE=$ARDS_USE_MSG_QUEUE" --expose=8828/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name ardsliteserviceimproved ardsliteserviceimproved:$VERSION_TAG node /usr/local/src/ardsliteserviceimproved/app.js;
+;;
+ "ardsliteroutingengineimproved")
+#6
+cd /usr/src/;
+if [ $REPOSITORY = "local" ]; then
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+ docker pull $REPOSITORY_IPURL":5000"/"ardsliteroutingengineimproved:"$GO_VERSION_TAG;
+ docker tag $REPOSITORY_IPURL":5000"/"ardsliteroutingengineimproved:"$GO_VERSION_TAG "ardsliteroutingengineimproved:"$GO_VERSION_TAG;
+ docker rmi -f $REPOSITORY_IPURL":5000"/"ardsliteroutingengineimproved:"$GO_VERSION_TAG;
+elif [ $REPOSITORY = "github" ]; then
+if [ ! -d "DVP-ardsliteroutingengineimproved" ]; then
+	git clone -b $GO_VERSION_TAG https://github.com/DuoSoftware/DVP-ARDSLiteRoutingEngineImproved.git;
+fi
+
+cd DVP-ARDSLiteRoutingEngineImproved;
+IFS='.' read -ra VER <<< "$GO_VERSION_TAG"
+docker build --build-arg MAJOR_VER=${VER[0]} -t "ardsliteroutingengineimproved:"$GO_VERSION_TAG .;
+#docker build -t "ardsliteroutingengineimproved:latest" .;
+fi
+cd /usr/src/;
+docker run -d -t --memory="512m" -v /etc/localtime:/etc/localtime:ro --env="VERSION_TAG=$GO_VERSION_TAG" --env="COMPOSE_DATE=$DATE" --env="GO_CONFIG_DIR=/go/src/gopkg.in/DuoSoftware/DVP-ARDSLiteRoutingEngineImproved.${VER[0]}/ARDSLiteRoutingEngine" --env="HOST_TOKEN=$HOST_TOKEN" --env="HOST_ARDSLITEROUTINGENGINEIMPROVED_ID=$ARDSLITEROUTINGENGINEIMPROVED_ID" --env="HOST_USE_MSG_QUEUE=$ARDS_USE_MSG_QUEUE" --env="SYS_REDIS_DB_LOCATION=$REDIS_DB_LOCATION" --env="HOST_ARDSLITEROUTINGENGINEIMPROVED_PORT=8835" --env="HOST_IP=$HOST_IP"  --env="HOST_VERSION=$HOST_VERSION" --env="SYS_REDIS_HOST=$REDIS_HOST" --env="SYS_REDIS_PASSWORD=$REDIS_PASSWORD" --env="SYS_REDIS_PORT=$REDIS_PORT" --env="SYS_REDIS_MODE=$REDIS_MODE" --env="SYS_REDIS_SENTINEL_HOSTS=$REDIS_SENTINEL_HOSTS" --env="SYS_REDIS_SENTINEL_PORT=$REDIS_SENTINEL_PORT" --env="SYS_REDIS_SENTINEL_NAME=$REDIS_SENTINEL_NAME" --env="SYS_REDIS_DB_ARDS=$REDIS_DB_ARDS" --env="VIRTUAL_HOST=ardsliteroutingengineimproved.*" --env="LB_FRONTEND=ardsliteroutingengineimproved.$FRONTEND" --env="LB_PORT=$LB_PORT" --env="SYS_RABBITMQ_HOST=$RABBITMQ_HOST" --env="SYS_RABBITMQ_PORT=$RABBITMQ_PORT" --env="SYS_RABBITMQ_USER=$RABBITMQ_USER" --env="SYS_RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD" --expose=8835/tcp --log-opt max-size=10m --log-opt max-file=10 --restart=always --name ardsliteroutingengineimproved ardsliteroutingengineimproved:$GO_VERSION_TAG go run *.go;
+
+;;
 esac
 done
  
