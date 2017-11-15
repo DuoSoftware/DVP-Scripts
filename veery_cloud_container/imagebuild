@@ -5,6 +5,18 @@
 
 DATE=`date +%Y-%m-%d`
 
+cd /usr/src/;
+if [ ! -d "DVP-ReverseProxy" ]; then
+	git clone https://github.com/DuoSoftware/DVP-ReverseProxy.git;
+fi
+cd DVP-ReverseProxy;
+docker build -t "nginx-proxy:latest" .
+docker tag nginx-proxy:latest $REPOSITORY_IPURL:5000/nginx-proxy:latest
+docker push $REPOSITORY_IPURL:5000/nginx-proxy:latest
+
+docker image remove nginx-proxy:latest
+docker image remove $REPOSITORY_IPURL:5000/nginx-proxy:latest
+
 IFS=', ' read -r -a array <<< "$DEPLOY";
 
 
