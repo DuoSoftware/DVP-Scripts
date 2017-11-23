@@ -493,35 +493,51 @@ static switch_status_t add_ards(int company, int tenant, const char* skill, cons
 	switch_curl_slist_free_all(headers);
 
 
+	switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response is: %d\n", httpRes);
 	if (httpRes == 200) {
 
 		if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
 
+			switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse stream ok to proceed\n");
+			
 			http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
 			if ((cj = cJSON_Parse(http_data->http_response))) {
-
 
 				for (cjp = cj->child; cjp; cjp = cjp->next) {
 					char *name = cjp->string;
 					//char *value = cjp->valuestring;
+					
+					switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response iteration: %s\n", name);
 
 					if (name) {
 
+						
 						if (!strcasecmp(name, "Result") && cjp->type == cJSON_Object) {
+							
+							switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse Result ok to proceed\n");
+			
 
 							for (cjr = cjp->child; cjr; cjr = cjr->next) {
 
 								char *namex = cjr->string;
 
+								switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response second iteration: %s\n", namex);
+						
 								if (!strcasecmp(namex, "Position")) {
 
 									int valuex = cjr->valueint;
 									switch_channel_set_variable_printf(channel, "ards_queue_position", "%d", valuex);
+									
+									switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse Position set %d\n", valuex);
+			
 								}
 								else if (!strcasecmp(namex, "QueueName")) {
 
 									char *valuex = cjp->valuestring;
 									switch_channel_set_variable(channel, "ards_skill_display", valuex);
+									
+									switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse QueueName set %s\n", valuex);
+
 								}
 							}
 						}
