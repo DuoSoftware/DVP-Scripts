@@ -533,7 +533,7 @@ static switch_status_t add_ards(int company, int tenant, const char* skill, cons
 								}
 								else if (!strcasecmp(namex, "QueueName")) {
 
-									char *valuex = cjp->valuestring;
+									char *valuex = cjr->valuestring;
 									switch_channel_set_variable(channel, "ards_skill_display", valuex);
 									
 									switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse QueueName set %s\n", valuex);
