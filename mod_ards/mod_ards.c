@@ -493,7 +493,7 @@ static switch_status_t add_ards(int company, int tenant, const char* skill, cons
 	switch_curl_slist_free_all(headers);
 
 
-	switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response is: %d\n", httpRes);
+	switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response is: %li\n", httpRes);
 	if (httpRes == 200) {
 
 		if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
