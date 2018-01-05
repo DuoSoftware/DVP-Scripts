@@ -361,7 +361,7 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 
 }
 
-static switch_status_t add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority) {
+static switch_status_t add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority, const char* bussinessunit) {
 
 	const char *url = globals.url;
 	switch_memory_pool_t *pool = NULL;
@@ -431,6 +431,7 @@ static switch_status_t add_ards(int company, int tenant, const char* skill, cons
 	cJSON_AddStringToObject(jdata, "RequestServerId", globals.id);
 	cJSON_AddStringToObject(jdata, "Priority", priority);
 	cJSON_AddStringToObject(jdata, "OtherInfo", "");
+	cJSON_AddStringToObject(jdata, "BusinessUnit", bussinessunit);
 
 
 
@@ -960,6 +961,7 @@ SWITCH_STANDARD_APP(ards_function)
 	const char *priority = NULL;
 	const char *company = NULL;
 	const char *tenant = NULL;
+	const char *bussinessunit = NULL;
 	char *mydata = NULL, *argv[5];
 
 	if (!position_language) {
@@ -987,6 +989,7 @@ SWITCH_STANDARD_APP(ards_function)
 	priority = switch_channel_get_variable(channel, "ards_priority");
 	company = switch_channel_get_variable(channel, "companyid");
 	tenant = switch_channel_get_variable(channel, "tenantid");
+	bussinessunit = switch_channel_get_variable(channel, "business_unit");
 
 
 	switch_channel_set_variable(channel, "dvp_call_type", "ards");
@@ -1017,8 +1020,12 @@ SWITCH_STANDARD_APP(ards_function)
 			tenant = "1";
 		}
 	}
+	if (!bussinessunit) {
 
-	if (add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority) == SWITCH_STATUS_SUCCESS) {
+		bussinessunit = "default";
+	}
+
+	if (add_ards(atoi(company), atoi(tenant), skill, uuid, channel, priority, bussinessunit) == SWITCH_STATUS_SUCCESS) {
 
 		position = switch_channel_get_variable(channel, "ards_queue_position");
 		t_queue_added = local_epoch_time_now(NULL);
