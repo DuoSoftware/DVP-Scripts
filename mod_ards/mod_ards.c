@@ -90,6 +90,7 @@ struct call_helper {
 	const char *originate_user;
 	const char *originate_display;
 	const char *profile_name;
+	const char *business_unit;
 
 
 	switch_memory_pool_t *pool;
@@ -1371,6 +1372,9 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_requesttype", "%s", h->requesttype);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_id", "%s", h->resource_id);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_name", "%s", h->resource_name);
+		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "business_unit", "%s", h->business_unit);
+
+		
 		switch_channel_process_export(member_channel, NULL, ovars, "ards_export_vars");
 
 
@@ -1991,6 +1995,13 @@ SWITCH_STANDARD_API(ards_route_function)
 				else if (!strcasecmp(name, "Skills")) {
 
 					h->skills = switch_core_strdup(h->pool, value);
+
+				}
+				
+
+				else if (!strcasecmp(name, "BusinessUnit")) {
+
+					h->business_unit = switch_core_strdup(h->pool, value);
 
 				}
 
