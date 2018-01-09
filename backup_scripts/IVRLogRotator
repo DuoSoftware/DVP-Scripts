@@ -1,7 +1,7 @@
 #!/bin/bash 
 #touch /script_logs/test.log
 #. ivrlog.conf
-logfilesize=2048
+logfilesize=2048000
 ivrdirectorypaths="/var/www/html/IVR/DVP-PHPVoiceSDK/Demo_IVR/ /usr/src/testLogRotate"
 
 function LogRotator {
