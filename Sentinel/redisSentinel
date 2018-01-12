@@ -1,6 +1,6 @@
 #!/bin/bash
-MASTERNODE=192.168.3.201
-INTERFACE_NAME=eth0
+MASTERNODE= sentinel master server ip address
+INTERFACE_NAME= master server ip address assigned interface name ex: eth0 
 
 sudo add-apt-repository ppa:chris-lea/redis-server
 sudo apt-get update

@@ -1,0 +1,15 @@
+Update redisSentinel file with following instructions
+
+"MASTERNODE" sentinel master server ip address
+"INTERFACE_NAME" master server ip address assigned interface name ex: eth0 
+
+MASTERNODE="sentinel master server ip address"
+INTERFACE_NAME="interface name of master server ip"
+
+Assign permission to "redisSentinel" file with , command
+chmod 777 redisSentinel
+
+Copy "config.tar.gz" and "redisSentinel" to other two servers and 
+do not change the files on the servers you copied the files ,Then 
+run the  redisSentinel file on all three servers using 
+./redisSentinel.
