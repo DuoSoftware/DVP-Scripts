@@ -1,0 +1,109 @@
+#!/bin/bash
+. /etc/registry
+startservice() {
+service docker stop
+nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock &
+}
+
+stopservice() {
+service docker stop
+retval=$( getpid );
+if [ $retval = "0" ];then
+        echo "";
+        else
+        kill $retval;
+        fi
+# nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock &
+}
+
+restartservice() {
+service docker stop
+
+retval=$( getpid );
+
+if [ $retval = "0" ];then
+        kill 0;
+        else
+        kill $retval;
+        fi
+sleep 3;
+ nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock &
+}
+
+
+getpid() {
+
+PID=$(pidof dockerd);
+if [ ! -z "$PID" ];then
+retval=$PID;
+else
+retval=0;
+
+fi
+echo $retval;
+}
+
+
+case "$1" in
+        start)
+	startservice
+#	nohup /usr/bin/dockerd --insecure-registry $REPOSITORY_IPURL:5000 -H unix:///var/run/docker.sock &
+	retval=$( getpid );
+        if [ $retval = "0" ];then
+        echo "Docker Service Cannot Start...";
+        else
+        echo "Docker Service Started " $retval;
+        fi
+               exit 1
+
+                ;;
+      stop)
+        stopservice
+	retval=$( getpid );
+        if [ $retval = "0" ];then
+        echo "Docker Service Stoped";
+        else
+        echo "Docker Service Cannot Stoped " $retval;
+        fi
+
+ echo "Docker Service Stop..."
+	stopservice
+
+                exit 1
+
+                ;;
+
+        restart)
+	restartservice
+	echo "Docker Service Stopping..";
+	retval=$( getpid );
+        	if [ $retval = "0" ];then
+	       	echo "Docker Service Cannot Start...";
+		else
+        	echo "Docker Service Started " $retval;
+	        fi
+
+                exit 1
+
+                ;;
+
+        status)
+# getpid
+retval=$( getpid );
+#echo "directory not created"
+#echo $retval;
+	if [ $retval = "0" ];then
+	echo "Docker Service Not Running...";
+	else
+	echo "Docker Service Running " $retval;
+	fi
+#                check_init
+#                status_of_proc -p "$DOCKER_SSD_PIDFILE" "$DOCKERD" "$DOCKER_DESC"
+        ;;
+          
+        *)
+                echo "Usage: service docker {start|stop|restart|status}"
+                exit 1
+                ;;
+esac
+

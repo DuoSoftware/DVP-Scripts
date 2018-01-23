@@ -1,0 +1,51 @@
+#!/bin/bash
+MASTERNODE=sentinel master server ip address
+INTERFACE_NAME=interface name of master server ip
+
+#ex:
+#MASTERNODE=X.X.X.X
+#INTERFACE_NAME=eth0 
+
+sudo add-apt-repository ppa:chris-lea/redis-server
+sudo apt-get update
+sudo apt-get install redis-server -y
+sudo apt-get install redis-sentinel -y
+
+tar -zxf config.tar.gz
+
+SERVER_IP=$(ifconfig $INTERFACE_NAME | grep "inet " | awk -F'[: ]+' '{ print $4 }')
+find config/ -type f -exec sed -i 's/fscatoneMip/'$MASTERNODE'/' {} \;
+SENTINEL_ID=$(grep "sentinel myid" /etc/redis/sentinel.conf)
+sed -i "s/sentinel_myid/$SENTINEL_ID/g" ${PWD}/config/sentinel.conf
+
+echo $SERVER_IP
+	if [ $SERVER_IP = $MASTERNODE ]; then
+		 
+	       echo ${PWD} "this is master"  
+                mv /etc/redis/redis.conf /etc/redis/redis.conf.BAK
+                mv /etc/redis/sentinel.conf /etc/redis/sentinel.conf.BAK
+		cp ${PWD}/config/master.redis.conf /etc/redis/redis.conf
+		cp ${PWD}/config/sentinel.conf /etc/redis/sentinel.conf
+#echo		${PWD}/config/master.redis.conf /etc/redis/redis.conf
+#echo          	${PWD}/config/sentinel.conf /etc/redis/sentinel.conf
+
+	else
+
+	 echo "this is slave"
+                mv /etc/redis/redis.conf /etc/redis/redis.conf.BAK
+                mv /etc/redis/sentinel.conf /etc/redis/sentinel.conf.BAK
+		cp ${PWD}/config/redis.conf /etc/redis/redis.conf
+		cp ${PWD}/config/sentinel.conf /etc/redis/sentinel.conf
+#echo           ${PWD}/config/redis.conf /etc/redis/redis.conf
+#echo           ${PWD}/config/sentinel.conf /etc/redis/sentinel.conf
+
+        fi 
+chown redis:redis /etc/redis/redis.conf
+chown redis:redis /etc/redis/sentinel.conf
+#START REDIS SERVER
+service redis-server restart
+#
+#START SENTINEL
+service redis-sentinel restart
+
+rm -rf config

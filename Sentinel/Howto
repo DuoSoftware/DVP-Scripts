@@ -1,0 +1,19 @@
+Update redisSentinel file with following instructions
+
+"MASTERNODE" sentinel master server ip address
+"INTERFACE_NAME"interface name of master server ip ex: eth0 "
+
+MASTERNODE=X.X.X.X
+INTERFACE_NAME=eth0
+
+Assign permission to "redisSentinel" file with , command
+chmod 777 redisSentinel
+
+Copy "config.tar.gz" and "redisSentinel" to other two servers and 
+do not change the files on the servers you copied the files ,Then 
+run the  redisSentinel file on all three servers using 
+./redisSentinel.
+
+SENTINEL CHECK MASTER NODE
+redis-cli -p 26379 sentinel get-master-addr-by-name redis-cluster
+
