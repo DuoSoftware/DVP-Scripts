@@ -1,0 +1,89 @@
+#!/bin/bash 
+#touch /script_logs/test.log
+#. ivrlog.conf
+logfilesize=2048000
+ivrdirectorypaths="/var/www/html/IVR/DVP-PHPVoiceSDK/Demo_IVR/ /usr/src/testLogRotate"
+
+function LogRotator {
+MaxFileSize=$1
+filePath=$2
+#MaxFileSize=2048
+#filePath=${PWD}
+#filePath=/var/www/html/IVR/DVP-PHPVoiceSDK/Demo_IVR
+#MaxFileSize=1024000
+#while true
+#do
+#     sh test.sh >> /script_logs/test.log
+#Get size in bytes** 
+#    file_size=`du -b /script_logs/test.log | tr -s '\t' ' ' | cut -d' ' -f1`
+    file_size=`du -b $filePath/process.log | tr -s '\t' ' ' | cut -d' ' -f1`
+    if [ $file_size -gt $MaxFileSize ];then   
+
+files=$( ls $filePath/ | grep process )
+sss=""
+logAry=()
+fileNameAry=""
+for i in $files ; do
+fileNameAry=$i
+sss=$sss" "$fileNameAry
+done
+echo $sss
+
+IFS=' ' read -r -a array <<< "$sss";
+for index in "${!array[@]}"
+do
+filename=${array[index]}
+saveIFS=$IFS
+IFS="."
+var2=($filename)
+IFS=$saveIFS
+count=${#var2[@]}
+var2=${var2[$count-1]}
+
+        if [ $var2 == 10 ];then
+        rm $filePath/process.log.10
+        elif [ $var2 == "log" ];then
+        var3=`expr $var2 + 1`
+logAry[1]=$filename
+        else
+        var3=`expr $var2 + 1`
+logAry[$var3]=$filename
+        fi
+done
+#echo ${logAry[@]};
+#echo ${logAry[1]}
+#echo ${#logAry[@]}
+
+
+len=${#logAry[@]}
+
+for (( i=$len; i>0; i-- ));
+do
+mv $filePath/${logAry[$i]} $filePath/process.log.$i
+        if [ ${logAry[$i]} == "process.log" ];then
+
+	touch $filePath/process.log
+	chmod 777 $filePath/process.log
+        fi
+done
+
+    fi
+
+#done
+}
+
+IFS=', ' read -r -a filepatharray <<< "$ivrdirectorypaths";
+for index in "${!filepatharray[@]}"
+do
+logfilePath=${filepatharray[index]}
+#str='abcd/'
+#echo "${filePath: -1}"
+if [ ${logfilePath: -1} == "/" ];then
+#v2=${v::-4}
+logfilePath=${logfilePath::-1}
+else
+logfilePath=$logfilePath
+fi
+#echo $filePath
+LogRotator $logfilesize $logfilePath
+done

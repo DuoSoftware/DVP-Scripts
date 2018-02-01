@@ -1,0 +1,13 @@
+1.do the following steps on all application servers and repository server
+
+-git clone https://github.com/DuoSoftware/DVP-Scripts.git
+-cd DVP-Scripts/REGISTRY
+-configure the enable.conf
++REPOSITORY:- value should be "local", when client environment not allow internet access for application servers.
++REPOSITORY_IPURL:- is ip address of registry server (local repository server). Application servers will be connected to registry server from application server.
++REPOSITORY_INTERFACE:-  is interface name of above mentioned ip address (REPOSITORY_IPURL).
++"GO_VERSION_TAG" :- the version of GO repository which you want to create GO container.
++"VERSION_TAG" is the version of nodejs repository which you want to create nodejs container.
+-chmod 777 configure
+-./configure
+2.
