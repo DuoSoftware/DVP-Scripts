@@ -995,6 +995,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 	switch_channel_set_variable(channel, "dvp_call_type", "ards");
 	switch_channel_set_variable(channel, "hangup_after_bridge", "false");
+	switch_channel_set_variable(channel, "ards_agent_found", NULL);
 	
 	switch_channel_answer(channel);
 
