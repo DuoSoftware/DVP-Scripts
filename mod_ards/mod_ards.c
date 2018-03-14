@@ -990,11 +990,11 @@ SWITCH_STANDARD_APP(ards_function)
 	priority = switch_channel_get_variable(channel, "ards_priority");
 	company = switch_channel_get_variable(channel, "companyid");
 	tenant = switch_channel_get_variable(channel, "tenantid");
-	bussinessunit = switch_channel_get_variable(channel, "business_unit");
+	bussinessunit = switch_channel_get_variable(channel, "queue_business_unit");
 
-    if (!bussinessunit) {
+    if (!bussinessunit || !strcasecmp(bussinessunit, "default")) {
 
-		bussinessunit = switch_channel_get_variable(channel, "queue_business_unit");
+		bussinessunit = switch_channel_get_variable(channel, "business_unit");
 	}
 	
 	
