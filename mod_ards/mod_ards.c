@@ -992,6 +992,13 @@ SWITCH_STANDARD_APP(ards_function)
 	tenant = switch_channel_get_variable(channel, "tenantid");
 	bussinessunit = switch_channel_get_variable(channel, "business_unit");
 
+    if (!bussinessunit) {
+
+		bussinessunit = switch_channel_get_variable(channel, "queue_business_unit");
+	}
+	
+	
+
 
 	switch_channel_set_variable(channel, "dvp_call_type", "ards");
 	switch_channel_set_variable(channel, "hangup_after_bridge", "false");
