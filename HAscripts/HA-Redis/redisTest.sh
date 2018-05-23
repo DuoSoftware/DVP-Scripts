@@ -88,12 +88,12 @@ PID=$(pidof $REDIS_SERVICE)
 			echo " alarm Primary server connection refused "
 			fi
 		else
-		echo "qq"
+		echo "Redis on Slave: Connection to Master Established"
 		fi
 	else
 		if [ ! -z "$PID" ]
 		then
-		echo "ll"
+		echo "Redis Master Connection Working"
 		echo $PID
 		else
 		ifdown $VIRTUAL_INTERFACE
