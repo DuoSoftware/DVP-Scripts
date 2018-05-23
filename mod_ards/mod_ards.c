@@ -308,15 +308,11 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 	}
 
 
-
 	headers = switch_curl_slist_append(headers, ctx);
 	switch_safe_free(ctx);
 
 	headers = switch_curl_slist_append(headers, cto);
 	switch_safe_free(cto);
-
-
-
 
 
 	//struct data_stream dstream = { NULL };
@@ -358,13 +354,12 @@ static void Inform_ards(ards_msg_type type, const char *uuid, const char *reason
 		switch_core_destroy_memory_pool(&pool);
 	}
 
-
-
 }
 
 static switch_status_t add_ards(int company, int tenant, const char* skill, const char *uuid, switch_channel_t *channel, const char *priority, const char* bussinessunit) {
 
 	const char *url = globals.url;
+	const char *skill_display = NULL;
 	switch_memory_pool_t *pool = NULL;
 	switch_CURL *curl_handle = NULL;
 	http_data_t *http_data = NULL;
@@ -495,51 +490,36 @@ static switch_status_t add_ards(int company, int tenant, const char* skill, cons
 	switch_curl_slist_free_all(headers);
 
 
-	switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response is: %li\n", httpRes);
 	if (httpRes == 200) {
 
 		if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
 
-			switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse stream ok to proceed\n");
-			
 			http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
 			if ((cj = cJSON_Parse(http_data->http_response))) {
+
 
 				for (cjp = cj->child; cjp; cjp = cjp->next) {
 					char *name = cjp->string;
 					//char *value = cjp->valuestring;
-					
-					switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response iteration: %s\n", name);
 
 					if (name) {
 
-						
 						if (!strcasecmp(name, "Result") && cjp->type == cJSON_Object) {
-							
-							switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse Result ok to proceed\n");
-			
 
 							for (cjr = cjp->child; cjr; cjr = cjr->next) {
 
 								char *namex = cjr->string;
 
-								switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Add ARDS response second iteration: %s\n", namex);
-						
 								if (!strcasecmp(namex, "Position")) {
 
 									int valuex = cjr->valueint;
 									switch_channel_set_variable_printf(channel, "ards_queue_position", "%d", valuex);
-									
-									switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse Position set %d\n", valuex);
-			
 								}
 								else if (!strcasecmp(namex, "QueueName")) {
 
 									char *valuex = cjr->valuestring;
 									switch_channel_set_variable(channel, "ards_skill_display", valuex);
-									
-									switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "ARDS respnse QueueName set %s\n", valuex);
-
+																		
 								}
 							}
 						}
@@ -568,9 +548,22 @@ static switch_status_t add_ards(int company, int tenant, const char* skill, cons
 			jdata = NULL;
 
 			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+
+				skill_display = switch_channel_get_variable(channel, "ards_skill_display");
+				if (!zstr(skill_display)) {
+
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill_display);
+
+				}else{
+
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+				}
+
+
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-added");
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-Skill", skill);
+				
+				//switch_channel_set_variable(channel, "ards_skill_display", valuex);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", com);
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", ten);
 				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
@@ -958,9 +951,10 @@ SWITCH_STANDARD_APP(ards_function)
 	switch_input_args_t args = { 0 };
 	switch_channel_t *channel = switch_core_session_get_channel(session);
 	char *uuid = switch_core_session_get_uuid(session);
-	const char *music = "silence";
+	//const char *music = "silence";
 	switch_event_t *event;
 	const char *tmp = switch_channel_get_variable(channel, "ards_hold_music");
+	const char *holdm = switch_channel_get_hold_music(channel);
 	const char *firstannouncement = switch_channel_get_variable(channel, "ards_first_announcement");
 	const char *announcement = switch_channel_get_variable(channel, "ards_announcement");
 	const char *announcement_time = switch_channel_get_variable(channel, "ards_announcement_time");
@@ -993,6 +987,9 @@ SWITCH_STANDARD_APP(ards_function)
 		time_m = atol(max_queue_time);
 	}
 
+	switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Max queue time --------------------------------------------------------->%ld\n", time_m);
+
+
 	if (position_announcement && !strcasecmp(position_announcement, "true")) {
 	}
 
@@ -1006,14 +1003,15 @@ SWITCH_STANDARD_APP(ards_function)
 	priority = switch_channel_get_variable(channel, "ards_priority");
 	company = switch_channel_get_variable(channel, "companyid");
 	tenant = switch_channel_get_variable(channel, "tenantid");
+
+	//bussinessunit = switch_channel_get_variable(channel, "business_unit");
+
 	bussinessunit = switch_channel_get_variable(channel, "queue_business_unit");
 
-    if (!bussinessunit || !strcasecmp(bussinessunit, "default")) {
+	if (!bussinessunit || !strcasecmp(bussinessunit, "default")) {
 
 		bussinessunit = switch_channel_get_variable(channel, "business_unit");
 	}
-	
-	
 
 
 	switch_channel_set_variable(channel, "dvp_call_type", "ards");
@@ -1068,11 +1066,11 @@ SWITCH_STANDARD_APP(ards_function)
 			moh_step = ARDS_MOH;
 		}
 
-		if (music && !strcasecmp(music, "silence")) {
-			//music = "silence_stream://-1";
-			//switch_snprintf(music_file_path, sizeof(music_file_path), "silence_stream://-1");
-			music_file_path = switch_mprintf("%s", "silence_stream://-1");
-		}
+		//if (music && !strcasecmp(music, "silence")) {
+		//	//music = "silence_stream://-1";
+		//	//switch_snprintf(music_file_path, sizeof(music_file_path), "silence_stream://-1");
+		//	music_file_path = switch_mprintf("%s", "silence_stream://-1");
+		//}
 
 		args.input_callback = ards_on_dtmf;
 		args.buf = dbuf;
@@ -1080,6 +1078,7 @@ SWITCH_STANDARD_APP(ards_function)
 
 		while (switch_channel_ready(channel)) {
 
+			switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Max queue time check %ld %ld\n", time_m, ((long)local_epoch_time_now(NULL) - (long)t_queue_added));
 
 			if (time_m > 0 && ((long)local_epoch_time_now(NULL) - (long)t_queue_added) > time_m) {
 				queue_max_reached = SWITCH_TRUE;
@@ -1097,12 +1096,12 @@ SWITCH_STANDARD_APP(ards_function)
 			else if (moh_step == ARDS_MOH)
 			{
 				//music = tmp;
-				if (!tmp) {
+				if (zstr(tmp)) {
 
-					tmp = switch_channel_get_hold_music(channel);
+					
 					//switch_snprintf(music_file_path, sizeof(music_file_path), tmp);
 
-					music_file_path = switch_mprintf("%s", tmp);
+					music_file_path = switch_mprintf("%s", holdm);
 				}
 				else {
 					if (time_a > 0) {
@@ -1145,6 +1144,17 @@ SWITCH_STANDARD_APP(ards_function)
 			}
 
 			///////////////////////////////////////////////////////////////////////////////
+
+			if (zstr(music_file_path)) {
+				
+				music_file_path = switch_mprintf("%s", "silence_stream://-1");
+			}
+
+
+
+			switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_INFO, "Music file path %s", music_file_path);
+
+
 			pstatus = switch_ivr_play_file(session, NULL, music_file_path, &args);
 			switch_safe_free(music_file_path);
 
@@ -1216,22 +1226,38 @@ SWITCH_STANDARD_APP(ards_function)
 			if (queue_max_reached) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(session), SWITCH_LOG_DEBUG, "Left queue after maximum waiting");
+				switch_core_session_hupall_matching_var("ards_client_uuid", uuid, SWITCH_CAUSE_ORIGINATOR_CANCEL);
+				Inform_ards(ARDS_RING_REJECTED, uuid, "reject", atoi(company), atoi(tenant));
+				switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+
+				if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "client-left");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+					switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+					switch_event_fire(&event);
+				}
 			}
+			else {
 
-			Inform_ards(ARDS_COMPLETED, uuid, "routed", atoi(company), atoi(tenant));
+				Inform_ards(ARDS_COMPLETED, uuid, "routed", atoi(company), atoi(tenant));
 
-			switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-			switch_channel_set_variable_printf(channel, "ards_routed", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+				switch_channel_set_variable_printf(channel, "ards_queue_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+				switch_channel_set_variable_printf(channel, "ards_routed", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
-			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-routed");
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
-				switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
-				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
-				switch_event_fire(&event);
+				if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Action", "ards-routed");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Call-UUID", uuid);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Company", company);
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "Tenant", tenant);
+					switch_event_add_header(event, SWITCH_STACK_BOTTOM, "ARDS-Event-Time", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ServerType", "CALLSERVER");
+					switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "RequestType", "CALL");
+					switch_event_fire(&event);
+				}
 			}
 			//Inform_ards(ARDS_REMOVE, "TEST", "TEST");
 
@@ -1312,16 +1338,15 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	char *music_file_path;
 	time_t when;
 	int time_d = 30;
+	const char* dialer_ivr;
+	int bridged = 1;
 	//bind_flags |= SBF_DIAL_ALEG;
 
 	bind_flags |= SBF_DIAL_BLEG;
 	bind_flags |= SBF_EXEC_SAME;
 
-
-
 	//////////////////////////////////////////////route to agent //////////////////////////////////////////////////
-
-
+	/////////////////////possible lock//////////////////////////////////////////////////////////////////////////////
 	member_session = switch_core_session_locate(h->member_uuid);
 
 	if (member_session) {
@@ -1340,20 +1365,20 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		}
 
 		*/
-
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "OutBound Started");
-
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "Route to agent is started in new thread with member session locked %s\n", h->member_uuid);
 		member_channel = switch_core_session_get_channel(member_session);
-
 		if ((p = switch_channel_get_variable(member_channel, "ards_agent_found")) && (agent_found = switch_true(p))) {}
 
 		if (agent_found) {
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "There is agent_found flag enabled stop proceeding %s", h->member_uuid);
 			switch_core_destroy_memory_pool(&h->pool);
 			return NULL;
 		}
+
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_DEBUG, "There is no agent_found flag enable start proceeding %s", h->member_uuid);
 
 		switch_channel_set_variable(member_channel, "ards_agent_found", "true");
 		switch_channel_set_variable(member_channel, "ards_skill_display", h->skills);
@@ -1363,9 +1388,14 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		caller_number = switch_channel_get_variable(member_channel, "caller_id_number");
 		calling_number = switch_channel_get_variable(member_channel, "destination_number");
 		dial_time = switch_channel_get_variable(member_channel, "ards_dial_time");
+		dialer_ivr = switch_channel_get_variable(member_channel, "is_dialer_ivr");
 
 		if (dial_time) {
 			time_d = atoi(dial_time);
+		}
+
+		if (zstr(dialer_ivr)) {
+			dialer_ivr = "false";
 		}
 
 
@@ -1397,11 +1427,8 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_id", "%s", h->resource_id);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_resource_name", "%s", h->resource_name);
 		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "business_unit", "%s", h->business_unit);
-
-		
+		switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "ards_skill_display", "%s", h->skills);
 		switch_channel_process_export(member_channel, NULL, ovars, "ards_export_vars");
-
-
 
 		if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 
@@ -1427,41 +1454,38 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		msg = switch_mprintf("agent_found|%q|%q|%q|%q|%q|%q|inbound|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name);
 		if (!zstr(h->profile_name)) {
 
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Start Sending agent_found notifications to %s\n", h->member_uuid);
 			send_notification("agent_found", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "End Sending notifications to %s\n", h->member_uuid);
+
 		}
 		switch_safe_free(msg);
 
 		////////////////////////////////////////////////////setup url/////////////////////////////////////////////////////////////////////////////
 
-
-
 		if (!strcasecmp(h->originate_type, "PRIVATE")) {
 
 			//sip_h_X-User-to-User=48656c6c6f
-			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=%d,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->member_uuid, time_d, h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=%d,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER,is_dialer_ivr=%s}user/%s@%s", h->member_uuid, h->member_uuid, time_d,dialer_ivr, h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 		}
 		else if (!strcasecmp(h->originate_type, "PUBLIC")) {
 
-			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PUBLIC_USER,sip_h_DVP-DESTINATION-TYPE=PUBLIC_USER}sofia/external/%s@%s", h->member_uuid, h->member_uuid, h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PUBLIC_USER,sip_h_DVP-DESTINATION-TYPE=PUBLIC_USER,is_dialer_ivr=%s}sofia/external/%s@%s", h->member_uuid, h->member_uuid, dialer_ivr, h->originate_user, h->originate_domain);
 			switch_event_add_header(ovars, SWITCH_STACK_BOTTOM, "sip_h_DVP-DESTINATION-TYPE", "%s", "PUBLIC_USER");
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
-
-
 		}
 		else if (!strcasecmp(h->originate_type, "TRUNK")) {
 
-			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=GATEWAY,sip_h_DVP-DESTINATION-TYPE=GATEWAY}sofia/gateway/%s/%s", h->member_uuid, h->member_uuid, h->originate_domain, h->originate_user);
+			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=GATEWAY,sip_h_DVP-DESTINATION-TYPE=GATEWAY,is_dialer_ivr=%s}sofia/gateway/%s/%s", h->member_uuid, h->member_uuid, dialer_ivr, h->originate_domain, h->originate_user);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
-
-
 		}
 		else {
 
-			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=%d,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER}user/%s@%s", h->member_uuid, h->member_uuid, time_d, h->originate_user, h->originate_domain);
+			char *ctx = switch_mprintf("{sip_h_X-session=%s,memberuuid=%s,originate_timeout=%d,DVP_ACTION_CAT=DEFAULT,DVP_OPERATION_CAT=PRIVATE_USER,is_dialer_ivr=%s}user/%s@%s", h->member_uuid, h->member_uuid, time_d, dialer_ivr, h->originate_user, h->originate_domain);
 			h->originate_string = switch_core_strdup(h->pool, ctx);
 			switch_safe_free(ctx);
 
@@ -1472,11 +1496,15 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 
 		dialstr = switch_channel_expand_variables(member_channel, h->originate_string);
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Start dialing agent in outbound thread %s\n", h->originate_string);
+
+
 		status = switch_ivr_originate(NULL, &agent_session, &cause, dialstr, time_d, NULL, cid_name ? cid_name : h->member_cid_name, cid_number ? cid_number : h->member_cid_number, NULL, ovars, SOF_NONE, NULL);
 		if (dialstr != h->originate_string) {
 			switch_safe_free(dialstr);
 		}
 
+		switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "End dialing agent in outbound thread %s\n", h->member_uuid);
 
 		switch_event_destroy(&ovars);
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1486,11 +1514,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 		if (status == SWITCH_STATUS_SUCCESS) {
 
 
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Dialout process succeed %s to %s \n", h->member_uuid, h->resource_name);
+
 			member_channel = switch_core_session_get_channel(member_session);
 			agent_channel = switch_core_session_get_channel(agent_session);
-
-
-
 
 			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
@@ -1510,7 +1537,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			if (!zstr(h->profile_name)) {
 				msg = switch_mprintf("agent_connected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%q", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, switch_core_session_get_uuid(agent_session));
+				
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Start Sending agent_connected notifications to %s\n", h->member_uuid);
 				send_notification("agent_connected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Stop Sending agent_connected notifications to %s\n", h->member_uuid);
+
 			}
 			switch_safe_free(msg);
 
@@ -1519,13 +1550,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_channel_set_variable(member_channel, "ARDS-Resource-Name", h->resource_name);
 			switch_channel_set_variable(member_channel, "ARDS-SIP-Name", h->originate_display);
 
-
-
 			////////////////////////////////////////////////////////ARDS Key bind////////////////////////////////////////////////
 
 			ardsfeatures = switch_mprintf("execute_extension::att_xfer XML ARDSFeatures|%q|%q", tenant, company);
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent leg binding");
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(member_session, kval, bind_flags, (const char*)ardsfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
@@ -1533,7 +1562,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			ardsoutboundfeatures = switch_mprintf("execute_extension::att_xfer_outbound XML ARDSFeatures|%q|%q", tenant, company);
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent leg binding");
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(member_session, rval, bind_flags, (const char*)ardsoutboundfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
@@ -1542,7 +1571,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 			ardsoutivrfeatures = switch_mprintf("execute_extension::att_xfer_ivr XML ARDSFeatures|%q|%q", tenant, company);
 
-			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent leg binding");
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent leg binding");
 			if (switch_ivr_bind_dtmf_meta_session(member_session, ival, bind_flags, (const char*)ardsoutivrfeatures) != SWITCH_STATUS_SUCCESS) {
 
 				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Bind Error!\n");
@@ -1561,9 +1590,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 			switch_safe_free(ardsoutboundfeatures);
 			switch_safe_free(ardsoutivrfeatures);
 			//switch_safe_free(agentGreeting);
-
-
-
 
 			///////////////////////////////////////////////////start recording//////////////////////////////////////////////////////
 			if (!globals.rurl) {
@@ -1595,13 +1621,13 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 						if (expandedx != uploaddata) {
 							switch_safe_free(expandedx);
 						}
+
+						switch_safe_free(uploaddata);
 					}
 
 				}
 			}
 			else {
-
-
 
 				//////////////////////////////////////////////test webupload ////////////////////////////////////
 				//<action application="record" data="http://(file=/tmp/part1.ul,name=part1.PCMU)example.net/part1.PCMU?rev=47"/>
@@ -1610,109 +1636,128 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				switch_safe_free(uploaddata);
 
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 			}
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 			/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			switch_ivr_uuid_bridge(h->member_session_uuid, switch_core_session_get_uuid(agent_session));
-			switch_channel_wait_for_flag(agent_channel, CF_BRIDGED, SWITCH_TRUE, 1000, NULL);
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Agent and member bridge process starting %s\n", h->member_uuid);
 
 
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-			ctn = switch_mprintf("authorization: Bearer %s", globals.security_token);
-			cto = switch_mprintf("companyinfo: %d:%d", atoi(h->tenant), atoi(h->company));
-
-			switch_core_new_memory_pool(&pool);
-			curl_handle = switch_curl_easy_init();
-
-			http_data = switch_core_alloc(pool, sizeof(http_data_t));
-			memset(http_data, 0, sizeof(http_data_t));
-			http_data->pool = pool;
-
-			http_data->max_bytes = 64000;
-			SWITCH_STANDARD_STREAM(http_data->stream);
-
-
-			tmpurl = switch_mprintf("%s/AgentGreeting/%s/%s", globals.qurl, h->profile_name, switch_channel_get_variable(member_channel, "ards_position_language"));
-
-			headers = switch_curl_slist_append(headers, ctn);
-			switch_safe_free(ctn);
-
-			headers = switch_curl_slist_append(headers, cto);
-			switch_safe_free(cto);
-
-			//struct data_stream dstream = { NULL };
-			switch_curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "GET");
-			//switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPGET, 1);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 15);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-
-			switch_curl_easy_setopt(curl_handle, CURLOPT_URL, tmpurl);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, file_callback);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)http_data);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, header_callback);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)http_data);
-			switch_curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "freeswitch-curl/1.0");
-			switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
-
-			switch_curl_easy_perform(curl_handle);
-			switch_curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpRes);
-			switch_curl_easy_cleanup(curl_handle);
-			switch_curl_slist_free_all(headers);
-
-			if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
-
-				http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
+			if (switch_ivr_uuid_bridge(h->member_session_uuid, switch_core_session_get_uuid(agent_session)) != SWITCH_STATUS_SUCCESS) {
+				bridged = 0;			
+			}
+			
+			if (bridged && switch_channel_wait_for_flag(agent_channel, CF_BRIDGED, SWITCH_TRUE, 5000, NULL) != SWITCH_STATUS_SUCCESS) {
+				bridged = 0;
 			}
 
-			http_data->http_response_code = httpRes;
+			if (!bridged && !switch_channel_up(member_channel)) {
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent and member bridge process failed %s %s -> hangup agent\n", h->member_uuid, switch_core_session_get_uuid(agent_session));
+
+				switch_channel_hangup(agent_channel, SWITCH_CAUSE_ORIGINATOR_CANCEL);
+			}
+			else if (!bridged && !switch_channel_up(agent_channel)) {
+
+				///////log///////////////////////////////////////////////////////////////////////
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Agent and member bridge process failed %s agent channel down\n", h->member_uuid);
+
+			}
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			if (bridged) {
 
 
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Bridge suceed searching for greeting file %s\n", h->member_uuid);
 
-			if (httpRes == 200) {
 
-				if (!zstr(http_data->stream.data)) {
+				ctn = switch_mprintf("authorization: Bearer %s", globals.security_token);
+				cto = switch_mprintf("companyinfo: %d:%d", atoi(h->tenant), atoi(h->company));
 
-					char *mydata = strdup(http_data->stream.data);
-					switch_assert(mydata);
-					music_file_path = switch_mprintf("%s/%s/%s/%s", globals.durl, tenant, company, mydata);
-					//status = switch_ivr_play_file(agent_session, NULL, music_file_path, NULL);
-					//switch_ivr_broadcast(h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
-					when = switch_epoch_time_now(NULL) + 2;
-					switch_ivr_schedule_broadcast(when, h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
-					//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG);
-					//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG | SMF_ECHO_ALEG);
+				switch_core_new_memory_pool(&pool);
+				curl_handle = switch_curl_easy_init();
 
-					switch_safe_free(mydata);
-					switch_safe_free(music_file_path);
+				http_data = switch_core_alloc(pool, sizeof(http_data_t));
+				memset(http_data, 0, sizeof(http_data_t));
+				http_data->pool = pool;
+
+				http_data->max_bytes = 64000;
+				SWITCH_STANDARD_STREAM(http_data->stream);
+
+
+				tmpurl = switch_mprintf("%s/AgentGreeting/%s/%s", globals.qurl, h->profile_name, switch_channel_get_variable(member_channel, "ards_position_language"));
+
+				headers = switch_curl_slist_append(headers, ctn);
+				switch_safe_free(ctn);
+
+				headers = switch_curl_slist_append(headers, cto);
+				switch_safe_free(cto);
+
+				//struct data_stream dstream = { NULL };
+				switch_curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "GET");
+				//switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPGET, 1);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 15);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+
+				switch_curl_easy_setopt(curl_handle, CURLOPT_URL, tmpurl);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, file_callback);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)http_data);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, header_callback);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, (void *)http_data);
+				switch_curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "freeswitch-curl/1.0");
+				switch_curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
+
+				switch_curl_easy_perform(curl_handle);
+				switch_curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &httpRes);
+				switch_curl_easy_cleanup(curl_handle);
+				switch_curl_slist_free_all(headers);
+
+				if (http_data->stream.data && !zstr((char *)http_data->stream.data) && strcmp(" ", http_data->stream.data)) {
+
+					http_data->http_response = switch_core_strdup(pool, http_data->stream.data);
+				}
+
+				http_data->http_response_code = httpRes;
+
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Greeting service replied %ld\n", httpRes);
+
+				if (httpRes == 200) {
+
+					if (!zstr(http_data->stream.data)) {
+
+						char *mydata = strdup(http_data->stream.data);
+						switch_assert(mydata);
+						music_file_path = switch_mprintf("%s/%s/%s/%s", globals.durl, tenant, company, mydata);
+						//status = switch_ivr_play_file(agent_session, NULL, music_file_path, NULL);
+						//switch_ivr_broadcast(h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
+						when = switch_epoch_time_now(NULL) + 2;
+						switch_ivr_schedule_broadcast(when, h->member_uuid, music_file_path, SMF_ECHO_ALEG | SMF_ECHO_BLEG);
+						//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG);
+						//switch_ivr_broadcast(switch_core_session_get_uuid(agent_session), music_file_path, SMF_ECHO_BLEG | SMF_ECHO_ALEG);
+
+						switch_safe_free(mydata);
+						switch_safe_free(music_file_path);
+
+					}
 
 				}
 
+
+				switch_safe_free(tmpurl);
+				switch_safe_free(http_data->stream.data);
+
+				if (http_data && http_data->headers) {
+					switch_curl_slist_free_all(http_data->headers);
+				}
+
+				if (pool) {
+					switch_core_destroy_memory_pool(&pool);
+				}
 			}
-
-
-			switch_safe_free(tmpurl);
-
-			switch_safe_free(http_data->stream.data);
-
-			if (http_data && http_data->headers) {
-				switch_curl_slist_free_all(http_data->headers);
-			}
-
-			if (pool) {
-				switch_core_destroy_memory_pool(&pool);
-			}
-
-
-
 
 			/* Wait until the agent hangup.  This will quit also if the agent transfer the call */
 			while (switch_channel_up(agent_channel) && globals.running) {
@@ -1723,6 +1768,10 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				switch_yield(100000);
 			}
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Leaving mod_ards after bridge disconnected %s\n", h->member_uuid);
+
+
+
 
 
 			if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
@@ -1751,17 +1800,19 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				times = switch_channel_get_timetable(agent_channel);
 				switch_snprintf(start_epoch, sizeof(start_epoch), "%" SWITCH_TIME_T_FMT, times->answered / 1000000);
 				msg = switch_mprintf("agent_disconnected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%ld", h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, start_epoch, ((long)local_epoch_time_now(NULL) - atol(start_epoch)));
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Start Sending agent_diconneced notifications to %s\n", h->member_uuid);
 				send_notification("agent_disconnected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+				switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Stop Sending agent_disconnected notifications to %s\n", h->member_uuid);
 				switch_safe_free(msg);
 			}
-
-
 
 			switch_channel_set_variable_printf(member_channel, "ards_route_left", "%" SWITCH_TIME_T_FMT, local_epoch_time_now(NULL));
 
 
 		}
 		else {
+
+			switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_ERROR, "Dialout process failed %s %s .............", h->member_uuid, h->resource_name);
 
 			if (switch_channel_up(member_channel)) {
 
@@ -1794,7 +1845,11 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				if (!zstr(h->profile_name)) {
 
 					msg = switch_mprintf("agent_rejected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%" SWITCH_TIME_T_FMT, h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, local_epoch_time_now(NULL), local_epoch_time_now(NULL));
+					
+					switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Start Sending agent_rejected notifications to %s\n", h->member_uuid);
 					send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+					switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Stop Sending agent_rejected notifications to %s\n", h->member_uuid);
+
 					switch_safe_free(msg);
 				}
 
@@ -1805,7 +1860,6 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 
 				//Inform_ards(ARDS_RING_REJECTED, h->member_uuid, "reject", atoi(h->company), atoi(h->tenant));
 				//switch_channel_set_variable(member_channel, "ards_agent_found", NULL);
-
 
 				/*if (switch_event_create_subclass(&event, SWITCH_EVENT_CUSTOM, ARDS_EVENT) == SWITCH_STATUS_SUCCESS) {
 				switch_event_add_header_string(event, SWITCH_STACK_BOTTOM, "ARDS-Agent", h->originate_string);
@@ -1826,13 +1880,16 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 				if (!zstr(h->profile_name)) {
 
 					msg = switch_mprintf("agent_rejected|%q|%q|%q|%q|%q|%q|inbound|%q|%q|%" SWITCH_TIME_T_FMT "|%" SWITCH_TIME_T_FMT, h->member_uuid, skill, cid_number, cid_name, calling_number, h->skills, engagement_type, h->profile_name, local_epoch_time_now(NULL), local_epoch_time_now(NULL));
+					switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Start Sending agent_rejected notifications to %s\n", h->member_uuid);
 					send_notification("agent_rejected", h->member_uuid, atoi(h->company), atoi(h->tenant), h->profile_name, msg);
+					switch_log_printf(SWITCH_CHANNEL_SESSION_LOG(member_session), SWITCH_LOG_INFO, "Stop Sending agent_rejected notifications to %s\n", h->member_uuid);
 					switch_safe_free(msg);
 				}
 
 			}
 
 		}
+
 
 	}
 	else {
@@ -1841,6 +1898,7 @@ static void *SWITCH_THREAD_FUNC outbound_agent_thread_run(switch_thread_t *threa
 	}
 
 	if (agent_session) {
+
 
 		switch_core_session_rwunlock(agent_session);
 	}
@@ -2210,7 +2268,7 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_ards_load)
 
 	register_ards(1, 1);
 
-
+	//switch_safe_free(status);
 	/* indicate that the module should continue to be loaded */
 	return SWITCH_STATUS_SUCCESS;
 }
@@ -2239,9 +2297,24 @@ SWITCH_MODULE_SHUTDOWN_FUNCTION(mod_ards_shutdown)
 
 	switch_mutex_lock(globals.mutex);
 
-
+	
 	switch_safe_free(globals.url);
+	switch_safe_free(globals.durl);
+	switch_safe_free(globals.nurl);
+	switch_safe_free(globals.qurl);
+	switch_safe_free(globals.recordPath);
+	switch_safe_free(globals.registerurl);
+	switch_safe_free(globals.rpc_url);
+	switch_safe_free(globals.rurl);
+	switch_safe_free(globals.security_token);
+	switch_safe_free(globals.uurl);
+	switch_safe_free(globals.id);
 	switch_mutex_unlock(globals.mutex);
+
+	switch_core_hash_destroy(&globals.ards_hash);
+
+	switch_core_destroy_memory_pool(&globals.pool);
+
 	return SWITCH_STATUS_SUCCESS;
 }
 
