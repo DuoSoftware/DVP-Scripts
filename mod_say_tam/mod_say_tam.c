@@ -47,6 +47,7 @@
 #include <switch.h>
 #include <math.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 SWITCH_MODULE_LOAD_FUNCTION(mod_say_tam_load);
 SWITCH_MODULE_DEFINITION(mod_say_tam, mod_say_tam_load, NULL, NULL);
@@ -69,7 +70,7 @@ SWITCH_MODULE_DEFINITION(mod_say_tam, mod_say_tam_load, NULL, NULL);
 
 
 
-static switch_status_t play_group(switch_say_method_t method, int a, int b, int c, char *what, switch_say_file_handle_t *sh)
+static switch_status_t play_group(switch_say_method_t method, int a, int b, int c, _Bool isFifthDigitZero, char *what, switch_say_file_handle_t *sh)
 {
 
 	/*if (a)
@@ -114,30 +115,30 @@ static switch_status_t play_group(switch_say_method_t method, int a, int b, int 
 
 	if (a)
 	{
-		if (b == 0 && c == 0)
+
+
+		if (b == 0)
 		{
-			if (a == 1)
-			{
-				switch_say_file(sh, "digits/t_i-hundred");
-			}
-			else
-			{
-				switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_i-hundred");
-			}
+
+				switch_say_file(sh, "digits/t_i-%d0", a); // 80, 90, 110, 120 ...
+				switch_say_file(sh, "digits/t_kodi");
+
 		}
 		else
 		{
 
 			if (a == 1)
 			{
-				//switch_say_file(sh, "digits/%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
+				switch_say_file(sh, "digits/t_i-1%d", b); // 80, 90, 110, 120 ...
+				switch_say_file(sh, "digits/t_kodi");
 			}
 			else
 			{
-				switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
+
+				switch_say_file(sh, "digits/t_t-%d", a); // 10s
+				switch_say_file(sh, "digits/t_paththu"); //10  81, 82,..91, 92, 
+				switch_say_file(sh, "digits/t_i-%d", b);
+				switch_say_file(sh, "digits/t_kodi");
 			}
 		}
 
@@ -145,27 +146,13 @@ static switch_status_t play_group(switch_say_method_t method, int a, int b, int 
 
 	if (b)
 	{
-		if (b > 1)
-		{
 
-			if (c == 0) {
-				if (method == SSM_COUNTED) {
-				}
-				else
-				{
-					switch_say_file(sh, "digits/t_i-%d0", b);
-				}
-			}
-			else
-			{
-				switch_say_file(sh, "digits/t_k-%d0", b);
-			}
+		if (a == 0) {
+			switch_say_file(sh, "digits/t_i-%d", b);
+			switch_say_file(sh, "digits/t_kodi");
 		}
-		else {
-			switch_say_file(sh, "digits/t_i-%d%d", b, c);
-			c = 0;
 		}
-	}
+
 	if (c)
 	{
 		if (method == SSM_COUNTED)
@@ -175,50 +162,53 @@ static switch_status_t play_group(switch_say_method_t method, int a, int b, int 
 		else
 		{
 
-			if (c > 0) {
-				switch_say_file(sh, "digits/t_i-%d", c);
-			}
+			if (c > 1) {
+				if (isFifthDigitZero) {
+					switch_say_file(sh, "digits/t_i-%d0", c); // 10s
+					switch_say_file(sh, "digits/t_latchchthu");
+				}
+				else {
+					switch_say_file(sh, "digits/t_t-%d", c); // 10s
+					switch_say_file(sh, "digits/t_paththu"); //10  81, 82,..91, 92, .. 101, 102, .. 111,112.. 
+				}
+			} // if 1 ignore here to handle it in the next group eg: 14, 15
 
 		}
 	}
 
 
-	if (what && (a || b || c)) {
-		switch_say_file(sh, what);
-	}
+	//if (what && (a || b || c)) {
+	//	switch_say_file(sh, what);
+	//}
 
 	return SWITCH_STATUS_SUCCESS;
 }
 
-static switch_status_t play_group1(switch_say_method_t method, int a, int b, int c, char *what, switch_say_file_handle_t *sh)
+static switch_status_t play_group1(switch_say_method_t method, int a, int b, int c, int sixth, char *what, switch_say_file_handle_t *sh)
 {
+	//if (strcmp(what, "digits/t_i-1-thousand") == 0  &&  b == 0 && c == 0) {
+	//		switch_say_file(sh, "digits/t_lakh-%d", a); //300000, 400000 etc
+	//	return SWITCH_STATUS_SUCCESS;
+	//}
 
 	if (a)
 	{
-		if (b == 0 && c == 0)
+		if (strcmp(what, "digits/t_i-1-thousand") == 0 && b == 0 && c == 0)
 		{
-			if (a == 1)
-			{
-				switch_say_file(sh, "digits/t_k-hundred");
-			}
-			else
-			{
-				switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
-			}
+			switch_say_file(sh, "digits/t_lakh-%d", a);
+			return SWITCH_STATUS_SUCCESS;
 		}
 		else
 		{
 
-			if (a == 1)
-			{
-				//switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
+
+			if (sixth == 1) {
+				switch_say_file(sh, "digits/t_i-1%d", a);
+				switch_say_file(sh, "digits/t_latchchthu");
 			}
-			else
-			{
-				switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
+			else {
+				switch_say_file(sh, "digits/t_i-%d", a);
+				switch_say_file(sh, "digits/t_latchchthu");
 			}
 		}
 
@@ -234,16 +224,17 @@ static switch_status_t play_group1(switch_say_method_t method, int a, int b, int
 				}
 				else
 				{
-					switch_say_file(sh, "digits/t_h-%d0", b);
+					switch_say_file(sh, "digits/t_i-%d0", b); // 80, 90, 110, 120 ...
 				}
 			}
 			else
 			{
-				switch_say_file(sh, "digits/t_k-%d0", b);
+				switch_say_file(sh, "digits/t_t-%d", b); // 10s
+				switch_say_file(sh, "digits/t_paththu", b); //10  81, 82,..91, 92, .. 101, 102, .. 111,112.. 
 			}
 		}
 		else {
-			switch_say_file(sh, "digits/t_k-%d%d", b, c);
+			switch_say_file(sh, "digits/t_i-%d%d", b, c); // 
 			c = 0;
 		}
 	}
@@ -256,20 +247,18 @@ static switch_status_t play_group1(switch_say_method_t method, int a, int b, int
 		else
 		{
 			
-			if (c == 2) {
-				switch_say_file(sh, "digits/t_%d", c);
-			}
-			else {
-				switch_say_file(sh, "digits/t_k-%d", c);
+			if (c > 1) {
+				switch_say_file(sh, "digits/t_i-%d", c); //thousands
 			}
 			
 		}
 	}
 
 
-	if (what && (a || b || c)) {
+	if (what && (b || c)) {
 		switch_say_file(sh, what);
 	}
+
 
 	return SWITCH_STATUS_SUCCESS;
 }
@@ -281,28 +270,21 @@ static switch_status_t play_group2(switch_say_method_t method, int a, int b, int
 	{
 		if (b == 0 && c == 0)
 		{
-			if (a == 1)
-			{
-				switch_say_file(sh, "digits/t_i-hundred");
-			}
-			else
-			{
-				switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_i-hundred");
-			}
+
+			switch_say_file(sh, "digits/t_i-%d-hundred", a); // 200, 300 ...
+
 		}
 		else
 		{
 
 			if (a == 1)
 			{
-				//switch_say_file(sh, "digits/%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
+				switch_say_file(sh, "digits/t_nootru"); // 100
 			}
 			else
 			{
-				switch_say_file(sh, "digits/t_k-%d", a);
-				switch_say_file(sh, "digits/t_k-hundred");
+				switch_say_file(sh, "digits/t_h-%d", a);
+				switch_say_file(sh, "digits/t_nootru"); // 2xx, 3xx .. 
 			}
 		}
 
@@ -318,16 +300,17 @@ static switch_status_t play_group2(switch_say_method_t method, int a, int b, int
 				}
 				else
 				{
-					switch_say_file(sh, "digits/t_i-%d0", b);
+					switch_say_file(sh, "digits/t_i-%d0", b); // 80, 90, 110, 120 ...
 				}
 			}
 			else
 			{
-				switch_say_file(sh, "digits/t_k-%d0", b);
+				switch_say_file(sh, "digits/t_t-%d", b); // 10s
+				switch_say_file(sh, "digits/t_paththu", b); //10  81, 82,..91, 92, .. 101, 102, .. 111,112.. 
 			}
 		}
 		else {
-			switch_say_file(sh, "digits/t_i-%d%d", b, c);
+			switch_say_file(sh, "digits/t_i-%d%d", b, c); // 05, 06, 07 ...
 			c = 0;
 		}
 	}
@@ -413,19 +396,28 @@ static switch_status_t tam_say_general_count(switch_say_file_handle_t *sh, char 
 		break;
 		case SSM_COUNTED:
 		case SSM_PRONOUNCED:
-			if ((status = play_group(SSM_PRONOUNCED, places[8], places[7], places[6], "digits/t_million", sh)) != SWITCH_STATUS_SUCCESS) {
+			switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_ERROR, "Parse Error!\n");
+
+			bool isFifthDigitZero = true;
+			if (places[5]) {
+				isFifthDigitZero = false;
+			}
+
+			if ((status = play_group(SSM_PRONOUNCED, places[8], places[7], places[6], isFifthDigitZero, "digits/t_million", sh)) != SWITCH_STATUS_SUCCESS) {
 				return status;
 			}
 
+
 			if (places[2] == 0 && places[1] == 0 && places[0] == 0)
-			{
-				if ((status = play_group1(SSM_PRONOUNCED, places[5], places[4], places[3], "digits/t_i-thousand", sh)) != SWITCH_STATUS_SUCCESS) {
+			{	
+
+				if ((status = play_group1(SSM_PRONOUNCED, places[5], places[4], places[3], places[6], "digits/t_i-1-thousand", sh)) != SWITCH_STATUS_SUCCESS) {
 					return status;
 				}
 			}
 			else
 			{
-				if ((status = play_group1(SSM_PRONOUNCED, places[5], places[4], places[3], "digits/t_k-thousand", sh)) != SWITCH_STATUS_SUCCESS) {
+				if ((status = play_group1(SSM_PRONOUNCED, places[5], places[4], places[3], places[6], "digits/t_aayirathu", sh)) != SWITCH_STATUS_SUCCESS) {
 					return status;
 				}
 			}
@@ -739,7 +731,13 @@ static switch_status_t tam_say_money(switch_say_file_handle_t *sh, char *tosay, 
 		}
 		else {
 			switch_say_file(sh, "currency/shatha");
-			tam_say_general_count(sh, cents, say_args);
+			if (atoi(cents) == 0) {
+				tam_say_general_count(sh, cents, say_args);
+				tam_say_general_count(sh, cents, say_args);
+			}
+			else {
+				tam_say_general_count(sh, cents, say_args);
+			}
 		}
 
 
