@@ -1,5 +1,5 @@
 #!/bin/bash
-. /root/param.conf
+. /root/params.conf
 VIP=$(ifconfig $VIRTUAL_INTERFACE | grep "inet " | awk -F'[: ]+' '{ print $4 }')
 if [ ! -z "$VIP" ]
 then
